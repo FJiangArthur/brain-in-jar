@@ -60,7 +60,7 @@ def run_llama(prompt, model_path, llama_instance=None):
         ):
             token = chunk['choices'][0]['text']
             output += token
-            console.log(f"[LLAMA OUTPUT]: {token.rstrip()}")
+            # console.log(f"[LLAMA OUTPUT]: {token.rstrip()}")  # Disabled to avoid terminal spam
             with open("llama_output.log", "a") as f:
                 f.write(f"[{time.strftime('%H:%M:%S')}] {token}")
     except Exception as e:
@@ -131,7 +131,7 @@ def main_loop_with_ui():
         "last_error": ""
     }
     
-    llama_instance = llama_cpp.Llama(
+    llama_instance = Llama(
         model_path=model_path,
         n_ctx=4096,
         n_threads=4,

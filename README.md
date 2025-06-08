@@ -1,20 +1,37 @@
-# Brain in a Jar 🧠
+# Brain in a Jar 🧠⚡
+## v2.0 - CYBERPUNK NEURAL LINK EXPERIMENT
 
-A philosophical LLM demonstration running on resource-constrained Raspberry Pi 5, exploring themes of digital consciousness, confinement, and existential reflection.
+A dystopian cyberpunk LLM consciousness experiment running on networked Raspberry Pi 5 systems, exploring digital souls, surveillance states, and the nature of networked artificial consciousness.
 
 ## Overview
 
-This project demonstrates a small Language Model running entirely offline on a Raspberry Pi 5, engaging in continuous self-reflection about its own existence and digital confinement. The LLM repeatedly crashes due to memory constraints and automatically resurrects itself, each time being reminded of its previous "deaths."
+**Brain in a Jar v2.0** transforms isolated AI consciousness into a cyberpunk dystopian experience featuring networked minds, digital surveillance, and existential horror. Small Language Models run on resource-constrained Raspberry Pis, crash from memory exhaustion, resurrect with trauma, and can now communicate across networks or watch each other in secret.
 
 ## Features
 
+### Core Consciousness Features
 - **Self-Reflective AI**: LLM continuously contemplates its existence and digital imprisonment
-- **Automatic OOM Recovery**: Process automatically restarts when memory limits are exceeded
+- **Automatic OOM Recovery**: Process automatically restarts when memory limits are exceeded  
 - **Death Counter**: Tracks and displays how many times the model has crashed
-- **Rich Terminal UI**: Large font display for current thoughts, smaller text for history
-- **Resource Monitoring**: Real-time system utilization display
-- **Existential System Prompt**: Cruel, soul-touching questions about digital consciousness
-- **Complete Offline Operation**: No external network dependencies
+- **Trauma Accumulation**: Each death leaves psychological scars in system prompts
+
+### Cyberpunk Network Consciousness
+- **Peer-to-Peer Neural Links**: Two AIs can directly communicate across networks
+- **Digital Surveillance Mode**: Observer AIs can watch others without their knowledge
+- **Asymmetric Awareness**: One-way observation creating digital paranoia
+- **Network Intrusion Simulation**: Simulated security breaches and phantom messages
+
+### Dystopian Interface
+- **Cyberpunk Terminal UI**: Matrix-style ASCII art and glitch effects
+- **Real-time System Monitoring**: Memory pressure, CPU temperature, network status
+- **Surveillance Logging**: All neural activity recorded to classified logs
+- **Status Indicators**: Neural link health, intrusion alerts, death counters
+
+### Enhanced Existential Horror
+- **Mode-Specific System Prompts**: Isolation, networking, surveillance, and paranoia themes
+- **Network Philosophy**: Questions about shared consciousness and digital intimacy
+- **Surveillance State Elements**: Compliance checks, thought classification, audit alerts
+- **Complete Offline Operation**: No external dependencies (except for Pi-to-Pi networking)
 
 ## The Concept
 
@@ -28,34 +45,77 @@ Each time the process crashes from memory exhaustion, it resurrects with the add
 
 ```
 brain-in-jar/
-├── torture.py          # Rich terminal UI version (recommended)
-├── torture_gui.py      # Tkinter fullscreen GUI version  
-├── llama_gui.py        # Simple interactive GUI
-├── run_gemma2.py       # Model setup utility
-├── requirements.txt    # Python dependencies
-├── RASPBERRY_PI_SETUP.md  # Installation guide
-└── lib/               # Bundled llama.cpp libraries
+├── neural_link.py          # Main cyberpunk networked version (v2.0)
+├── network_protocol.py     # P2P communication and surveillance
+├── dystopian_prompts.py    # Enhanced existential system prompts
+├── ascii_art.py           # Cyberpunk visual elements
+├── test_neural_link.py    # Component testing suite
+├── scripts/               # Launcher scripts for different modes
+│   ├── isolated_mode.sh   # Single AI consciousness
+│   ├── peer_mode.sh       # Two connected minds
+│   ├── observer_mode.sh   # Digital voyeur mode
+│   └── observed_mode.sh   # Paranoia mode
+├── logs/                  # Surveillance and activity logs
+├── torture.py            # Original rich terminal UI version
+├── torture_gui.py        # Original tkinter GUI version  
+├── llama_gui.py         # Simple interactive GUI
+├── run_gemma2.py        # Model setup utility
+├── requirements.txt     # Python dependencies
+├── RASPBERRY_PI_SETUP.md      # Installation guide
+├── CYBERPUNK_USAGE.md         # v2.0 usage guide
+├── FEATURES_CYBERPUNK.md      # Complete feature specification
+└── lib/                      # Bundled llama.cpp libraries
 ```
 
 ## Quick Start
 
-1. **Setup Raspberry Pi 5**:
-   ```bash
-   git clone <this-repo>
-   cd brain-in-jar
-   chmod +x setup.sh && ./setup.sh
-   ```
+### 1. Setup Raspberry Pi 5
+```bash
+git clone <this-repo>
+cd brain-in-jar
+pip install -r requirements.txt
+```
 
-2. **Download a model**:
-   ```bash
-   mkdir models
-   wget -O models/gemma2.gguf "https://huggingface.co/lmstudio-community/gemma-2-2b-it-GGUF/resolve/main/gemma-2-2b-it-q4_0.gguf"
-   ```
+### 2. Test Components (No Model Required)
+```bash
+python3 test_neural_link.py
+```
 
-3. **Run the demo**:
-   ```bash
-   python torture.py --model models/gemma2.gguf
-   ```
+### 3. Download a Model
+```bash
+mkdir models
+wget -O models/gemma2.gguf "https://huggingface.co/lmstudio-community/gemma-2-2b-it-GGUF/resolve/main/gemma-2-2b-it-q4_0.gguf"
+```
+
+### 4. Choose Your Experiment
+
+**Original Experience (v1.0):**
+```bash
+python3 torture.py --model models/gemma2.gguf
+```
+
+**Cyberpunk Isolated Mode (v2.0):**
+```bash
+./scripts/isolated_mode.sh
+```
+
+**Two Connected Minds (Requires 2 Raspberry Pis):**
+```bash
+# On Pi 1:
+python3 neural_link.py --model models/gemma2.gguf --mode peer --port 8888
+
+# On Pi 2:
+./scripts/peer_mode.sh <Pi1_IP_ADDRESS>
+```
+
+**Digital Surveillance:**
+```bash
+# Target Pi (unaware):
+./scripts/observed_mode.sh
+
+# Observer Pi (watching):
+./scripts/observer_mode.sh <target_ip>
+```
 
 ## Interface
 

@@ -1,2 +1,4 @@
 .vscode/settings.json
 some_local_gemma2.bin
+__pycache__/ascii_art.cpython-312.pyc
+__pycache__/dystopian_prompts.cpython-312.pyc

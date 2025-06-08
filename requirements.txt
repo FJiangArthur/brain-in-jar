@@ -1,0 +1,15 @@
+# Core LLM library - build from source on Raspberry Pi 5
+llama-cpp-python>=0.2.0
+
+# Terminal UI for rich display
+rich>=13.0.0
+
+# System monitoring for resource utilization
+psutil>=5.9.0
+
+# Build dependencies for compiling llama-cpp-python from source
+cmake>=3.20.0
+pybind11>=2.10.0
+
+# Optional: Better performance profiling
+py-cpuinfo>=9.0.0

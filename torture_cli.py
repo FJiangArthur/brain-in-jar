@@ -76,7 +76,7 @@ def ui_loop(state):
         Layout(name="status", size=3)
     )
     
-    with Live(layout, refresh_per_second=4, screen=True):
+    with Live(layout, refresh_per_second=20, screen=True):  # Faster refresh for smoother streaming
         while True:
             # Main area - current output in SUPER LARGE text
             current_output = state.get("current_output", "Waiting for thoughts...")
@@ -94,9 +94,9 @@ def ui_loop(state):
             prompt_text = Text(f"SYSTEM:\n{wrapped_prompt}", style="magenta", justify="left")
             layout["prompt"].update(prompt_text)
             
-            # Sidebar - History snippet (no border)
-            history_snippet = state["history"][-500:] if state["history"] else "No history yet..."
-            history_text = Text(f"HISTORY:\n{history_snippet}", style="dim white", justify="left")
+            # Sidebar - Recent messages (no border)
+            recent_history = "\n\n".join(state['previous_messages'][-3:]) if state['previous_messages'] else "No history yet..."
+            history_text = Text(f"RECENT THOUGHTS:\n{recent_history}", style="dim white", justify="left")
             layout["history"].update(history_text)
             
             # Sidebar - Status (no border)
@@ -111,7 +111,7 @@ def ui_loop(state):
                 error_text = Text(f"LAST ERROR:\n{state['last_error'][-300:]}", style="yellow", justify="left")
                 layout["status"].update(Text(str(layout["status"].renderable) + "\n" + str(error_text)))
             
-            time.sleep(0.1)
+            time.sleep(0.05)  # Faster updates for smoother streaming
 
 def main_loop_with_ui():
     state = {

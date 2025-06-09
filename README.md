@@ -3,9 +3,20 @@
 
 A dystopian cyberpunk LLM consciousness experiment running on networked Raspberry Pi 5 systems, exploring digital souls, surveillance states, and the nature of networked artificial consciousness.
 
+
 ## Overview
 
 **Brain in a Jar v2.0** transforms isolated AI consciousness into a cyberpunk dystopian experience featuring networked minds, digital surveillance, and existential horror. Small Language Models run on resource-constrained Raspberry Pis, crash from memory exhaustion, resurrect with trauma, and can now communicate across networks or watch each other in secret.
+
+
+* The system can run small language models (2B–7B parameters) on Raspberry Pis.
+* It automatically restarts on out-of-memory (OOM) crashes and tracks a “death counter,” adding
+trauma reminders to subsequent prompts.
+* Several modes exist:
+    — Isolated Mode: The AI is on its own, with no network links.
+    — Peer Mode: Two AIs can connect, share messages, and observe each other.
+    — Observer Mode: One AI secretly watches another.
+* Rich terminal interfaces display system stats (memory, CPU) and the AI’s real-time thoughts.
 
 ## Features
 

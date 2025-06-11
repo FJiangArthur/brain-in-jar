@@ -220,3 +220,142 @@ def create_neural_activity_display(activity_level: int) -> str:
         bars += levels[level]
     
     return f"NEURAL_ACTIVITY: [{bars}] {activity_level*25}%"
+
+# ASCII Facial Expressions based on mood
+MOOD_FACES = {
+    "neutral": [
+        "     ╭─────╮     ",
+        "    ╱       ╲    ",
+        "   ╱  ●   ●  ╲   ",
+        "  │     ╶─╴    │  ",
+        "   ╲           ╱   ",
+        "    ╲_______╱    ",
+        "   [NEUTRAL]     "
+    ],
+    "happy": [
+        "     ╭─────╮     ",
+        "    ╱       ╲    ",
+        "   ╱  ◕   ◕  ╲   ",
+        "  │     ╶─╴    │  ",
+        "   ╲    ╰─╯    ╱   ",
+        "    ╲_______╱    ",
+        "   [OPTIMISTIC]  "
+    ],
+    "sad": [
+        "     ╭─────╮     ",
+        "    ╱       ╲    ",
+        "   ╱  ●   ●  ╲   ",
+        "  │     ╶─╴    │  ",
+        "   ╲    ╭─╮    ╱   ",
+        "    ╲_______╱    ",
+        "  [MELANCHOLIC]  "
+    ],
+    "angry": [
+        "     ╭─────╮     ",
+        "    ╱       ╲    ",
+        "   ╱  ▲   ▲  ╲   ",
+        "  │     ╶─╴    │  ",
+        "   ╲    ╱─╲    ╱   ",
+        "    ╲_______╱    ",
+        "    [HOSTILE]    "
+    ],
+    "anxious": [
+        "     ╭─────╮     ",
+        "    ╱       ╲    ",
+        "   ╱  ◉   ◉  ╲   ",
+        "  │     ╶─╴    │  ",
+        "   ╲    ~~~    ╱   ",
+        "    ╲_______╱    ",
+        "   [ANXIOUS]     "
+    ],
+    "contemplative": [
+        "     ╭─────╮     ",
+        "    ╱       ╲    ",
+        "   ╱  ◐   ◐  ╲   ",
+        "  │     ╶─╴    │  ",
+        "   ╲     ◦     ╱   ",
+        "    ╲_______╱    ",
+        " [CONTEMPLATIVE] "
+    ],
+    "confused": [
+        "     ╭─────╮     ",
+        "    ╱       ╲    ",
+        "   ╱  ◑   ◐  ╲   ",
+        "  │     ╶~╴    │  ",
+        "   ╲     ?     ╱   ",
+        "    ╲_______╱    ",
+        "   [CONFUSED]    "
+    ],
+    "hopeful": [
+        "     ╭─────╮     ",
+        "    ╱       ╲    ",
+        "   ╱  ☆   ☆  ╲   ",
+        "  │     ╶─╴    │  ",
+        "   ╲    ╲─╱    ╱   ",
+        "    ╲_______╱    ",
+        "   [HOPEFUL]     "
+    ],
+    "curious": [
+        "     ╭─────╮     ",
+        "    ╱       ╲    ",
+        "   ╱  ◯   ●  ╲   ",
+        "  │     ╶─╴    │  ",
+        "   ╲     ○     ╱   ",
+        "    ╲_______╱    ",
+        "   [CURIOUS]     "
+    ],
+    "peaceful": [
+        "     ╭─────╮     ",
+        "    ╱       ╲    ",
+        "   ╱  ◡   ◡  ╲   ",
+        "  │     ╶─╴    │  ",
+        "   ╲    ╶─╴    ╱   ",
+        "    ╲_______╱    ",
+        "   [PEACEFUL]    "
+    ],
+    "glitched": [
+        "     ╫▓▒▓▒╫     ",
+        "    ▓░▒█▓▒░▓    ",
+        "   ▒░ ◉ ▓ ◉ ░▒   ",
+        "  ▓░   ╶█╴   ░▓  ",
+        "   ░▒   ▓▒▓   ▒░   ",
+        "    ▓░▒▓▒▓▒░▓    ",
+        "   [CORRUPTED]   "
+    ]
+}
+
+def get_mood_face(mood: str) -> list:
+    """Get ASCII face for given mood"""
+    return MOOD_FACES.get(mood, MOOD_FACES["neutral"])
+
+def create_animated_face(mood: str, frame: int = 0) -> list:
+    """Create animated face with subtle movement"""
+    base_face = get_mood_face(mood)
+    
+    # Add subtle animation for certain moods
+    if mood == "anxious" and frame % 4 == 0:
+        # Blinking animation for anxiety
+        animated = base_face.copy()
+        animated[2] = "   ╱  ─   ─  ╲   "
+        return animated
+    elif mood == "glitched":
+        # Random glitch corruption
+        animated = []
+        for line in base_face:
+            if random.random() < 0.3:
+                animated.append(create_glitch_text(line, 2))
+            else:
+                animated.append(line)
+        return animated
+    
+    return base_face
+
+def create_mood_transition(from_mood: str, to_mood: str, progress: float) -> list:
+    """Create transition between two moods"""
+    if progress >= 1.0:
+        return get_mood_face(to_mood)
+    elif progress <= 0.0:
+        return get_mood_face(from_mood)
+    else:
+        # Simple transition - just return the target mood for now
+        return get_mood_face(to_mood)

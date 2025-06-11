@@ -25,5 +25,5 @@ opencv-python>=4.8.0
 picamera2>=0.3.12
 pillow>=10.0.0
 
-# Conversation logging and replay
-sqlite3
+# Conversation logging and replay  
+# sqlite3 is built into Python standard library

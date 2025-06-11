@@ -62,7 +62,7 @@ install_dependencies() {
         sudo apt-get install -y \
             build-essential cmake git python3 python3-pip python3-dev python3-venv \
             pkg-config libopenblas-dev ninja-build ccache wget curl \
-            python3-opencv libopencv-dev libcamera-dev
+            python3-opencv libopencv-dev libcamera-dev libcap-dev
             
         case $PLATFORM in
             "jetson")
@@ -93,17 +93,17 @@ configure_build_flags() {
             export CUDA_PATH="/usr/local/cuda"
             export PATH="$CUDA_PATH/bin:$PATH"
             export LD_LIBRARY_PATH="$CUDA_PATH/lib64:$LD_LIBRARY_PATH"
-            CMAKE_ARGS="-DLLAMA_CUBLAS=ON -DLLAMA_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=53;62;72;87"
+            CMAKE_ARGS="-DLLAMA_CUBLAS=ON -DLLAMA_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=72"
             ;;
         "raspberry_pi")
             CMAKE_ARGS="-DLLAMA_NATIVE=OFF -DLLAMA_OPENBLAS=ON"
-            CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_C_FLAGS='-march=armv8-a+crc+simd -mtune=cortex-a72'"
-            CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_CXX_FLAGS='-march=armv8-a+crc+simd -mtune=cortex-a72'"
+            CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_C_FLAGS=-march=armv8-a+crc+simd"
+            CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_CXX_FLAGS=-march=armv8-a+crc+simd"
             ;;
         "raspberry_pi_32")
             CMAKE_ARGS="-DLLAMA_NATIVE=OFF -DLLAMA_OPENBLAS=ON"
-            CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_C_FLAGS='-march=armv7-a -mfpu=neon-vfpv4 -mfloat-abi=hard'"
-            CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_CXX_FLAGS='-march=armv7-a -mfpu=neon-vfpv4 -mfloat-abi=hard'"
+            CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_C_FLAGS=-march=armv7-a"
+            CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_CXX_FLAGS=-march=armv7-a"
             ;;
         "arm64_linux")
             CMAKE_ARGS="-DLLAMA_NATIVE=ON -DLLAMA_OPENBLAS=ON"
@@ -121,15 +121,22 @@ configure_build_flags() {
 build_llama_cpp() {
     log "Building Llama CPP..."
     
-    cd lib/llama-cpp
+    cd lib/llama-cpp || { error "Failed to enter llama-cpp directory"; exit 1; }
     rm -rf build && mkdir -p build && cd build
     
-    cmake .. $CMAKE_ARGS -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local
+    if ! cmake .. $CMAKE_ARGS -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local; then
+        error "CMake configuration failed"
+        exit 1
+    fi
     
     local jobs=$(nproc)
     [[ $PLATFORM == "raspberry_pi"* ]] && jobs=$(( jobs < 2 ? 1 : 2 ))
     
-    make -j$jobs
+    if ! make -j$jobs; then
+        error "Build failed"
+        exit 1
+    fi
+    
     sudo make install
     sudo ldconfig
     

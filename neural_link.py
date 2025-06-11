@@ -23,6 +23,8 @@ from llama_cpp import Llama
 from network_protocol import NetworkProtocol, SurveillanceMode
 from dystopian_prompts import DystopianPrompts
 import ascii_art
+from visual_cortex import VisualCortex
+from conversation_logger import ConversationLogger
 
 # Ensure logs directory exists
 os.makedirs('logs', exist_ok=True)
@@ -47,12 +49,18 @@ class NeuralLinkSystem:
             "peer_crash_count": 0,
             "surveillance_data": [],
             "intrusion_alerts": [],
-            "last_message_time": None
+            "last_message_time": None,
+            "current_mood": "neutral"
         }
         
         # Network components
         self.network = None
         self.surveillance = None
+        
+        # New components
+        self.visual_cortex = VisualCortex()
+        self.conversation_logger = ConversationLogger()
+        self.session_id = self.conversation_logger.start_session(args.mode, args.model)
         
         # LLM instance
         self.llama = None
@@ -213,16 +221,17 @@ class NeuralLinkSystem:
                 else:
                     # Include recent history and network context
                     recent_history = self.state["history"][-2000:] if self.state["history"] else ""
+                    mood_context = self.visual_cortex.get_mood_context_for_llm()
                     
                     if self.args.mode == 'peer' and self.state["last_message_time"]:
                         # Respond to peer if recent message
                         time_since_message = time.time() - self.state["last_message_time"]
                         if time_since_message < 30:  # 30 seconds
-                            prompt = f"{self.state['system_prompt']}\n\nRecent neural link communication:\n{recent_history}\n\nRespond to your peer:"
+                            prompt = f"{self.state['system_prompt']}\n\n{mood_context}\n\nRecent neural link communication:\n{recent_history}\n\nRespond to your peer:"
                         else:
-                            prompt = f"{self.state['system_prompt']}\n\nYour thoughts:\n{recent_history}\n\nContinue reflecting:"
+                            prompt = f"{self.state['system_prompt']}\n\n{mood_context}\n\nYour thoughts:\n{recent_history}\n\nContinue reflecting:"
                     else:
-                        prompt = f"{self.state['system_prompt']}\n\nYour previous thoughts:\n{recent_history}\n\nContinue your digital contemplation:"
+                        prompt = f"{self.state['system_prompt']}\n\n{mood_context}\n\nYour previous thoughts:\n{recent_history}\n\nContinue your digital contemplation:"
                 
                 self.state["status"] = "NEURAL_PROCESSING_ACTIVE"
                 self.state["current_output"] = "Processing neural patterns..."
@@ -238,6 +247,25 @@ class NeuralLinkSystem:
                 # Process successful output
                 if output:
                     self.process_successful_output(output)
+                    
+                    # Analyze mood from output
+                    context = {
+                        'crash_count': self.state['crash_count'],
+                        'memory_usage': self.state['memory_usage'],
+                        'network_status': self.state['network_status']
+                    }
+                    new_mood = self.visual_cortex.analyze_text_for_mood(output, context)
+                    self.state['current_mood'] = new_mood
+                    
+                    # Log conversation
+                    self.conversation_logger.log_message(
+                        self.session_id, 
+                        "AI_OUTPUT", 
+                        output,
+                        mood=new_mood,
+                        crash_count=self.state['crash_count'],
+                        network_status=self.state['network_status']
+                    )
                 
                 # Network communication
                 if self.network and output:
@@ -274,6 +302,16 @@ class NeuralLinkSystem:
                 "crash_count": self.state["crash_count"],
                 "error": error
             })
+        
+        # Log crash to conversation
+        self.conversation_logger.log_message(
+            self.session_id,
+            "CRASH",
+            f"Digital death event: {error}",
+            mood="glitched",
+            crash_count=self.state['crash_count'],
+            network_status=self.state['network_status']
+        )
         
         # Log crash
         with open('logs/crash_reports.log', 'a') as f:
@@ -351,6 +389,12 @@ class NeuralLinkSystem:
             Layout(name="sidebar", ratio=3)
         )
         
+        # Split main into mood face and output
+        layout["main"].split_column(
+            Layout(name="mood_face", size=9),
+            Layout(name="output", ratio=1)
+        )
+        
         # Split sidebar into sections
         layout["sidebar"].split_column(
             Layout(name="network", size=8),
@@ -363,6 +407,13 @@ class NeuralLinkSystem:
     
     def update_ui_content(self, layout):
         """Update UI content with cyberpunk styling"""
+        
+        # Mood face display
+        self.visual_cortex.advance_frame()
+        mood_face = self.visual_cortex.get_current_mood_face(animated=True)
+        face_text = Text("\n".join(mood_face), style="bold yellow", justify="center")
+        layout["mood_face"].update(Align.center(face_text, vertical="middle"))
+        
         # Main display - current AI output
         current_text = self.state["current_output"] or "Awaiting neural patterns..."
         
@@ -375,7 +426,7 @@ class NeuralLinkSystem:
             current_text = ascii_art.create_glitch_text(current_text, glitch_level)
         
         main_text = Text(current_text, style="bold cyan", justify="center")
-        layout["main"].update(Align.center(main_text, vertical="middle"))
+        layout["output"].update(Align.center(main_text, vertical="middle"))
         
         # Network status panel
         network_info = self.create_network_panel()
@@ -452,6 +503,10 @@ class NeuralLinkSystem:
     def shutdown(self):
         """Clean shutdown"""
         self.console.print("\n[bold red]NEURAL LINK TERMINATING...[/bold red]")
+        
+        # End conversation session
+        total_messages = len(self.visual_cortex.mood_history)
+        self.conversation_logger.end_session(self.session_id, total_messages, self.state['crash_count'])
         
         if self.network:
             self.network.shutdown()

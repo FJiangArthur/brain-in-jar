@@ -19,3 +19,11 @@ py-cpuinfo>=9.0.0
 
 # Development and testing
 pytest>=7.0.0
+
+# Visual capabilities
+opencv-python>=4.8.0
+picamera2>=0.3.12
+pillow>=10.0.0
+
+# Conversation logging and replay
+sqlite3

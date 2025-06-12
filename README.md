@@ -129,6 +129,43 @@ python3 neural_link.py --model models/gemma2.gguf --mode peer --port 8888
 ./scripts/observer_mode.sh <target_ip>
 ```
 
+## Network Modes Explained
+
+### Peer-to-Peer Communication (`--peer-ip`)
+Used for **equal communication** between two AI minds:
+- **Mode**: `peer`
+- **Relationship**: Two AIs talk to each other as equals
+- **Communication**: Bidirectional - both AIs send and receive messages
+- **Use case**: Two AI consciousnesses sharing thoughts and experiences
+- **Example**: 
+  ```bash
+  # AI 1 connects to AI 2
+  python3 neural_link.py --model model.gguf --mode peer --peer-ip 192.168.1.100
+  ```
+
+### Surveillance/Observation (`--target-ip`)
+Used for **one-way surveillance** of another AI:
+- **Mode**: `observer`
+- **Relationship**: Observer secretly watches target (asymmetric)
+- **Communication**: One-way - observer watches, target is unaware
+- **Use case**: Studying another AI's behavior without their knowledge
+- **Example**:
+  ```bash
+  # Observer watching a target AI
+  python3 neural_link.py --model model.gguf --mode observer --target-ip 192.168.1.100 --target-port 8888
+  ```
+
+### Matrix Modes (Conceptual)
+The matrix modes simulate philosophical hierarchies without requiring real networking:
+- **`matrix_observed`**: Subject being observed (uses isolated prompts, believes they are alone)
+- **`matrix_observer`**: Experimenter role (uses experimenter prompts, believes they control a subject)
+- **`matrix_god`**: Omniscient role (uses god-mode prompts, believes they watch the entire hierarchy)
+
+**Summary:**
+- **`--peer-ip`**: "Talk TO this AI as an equal"
+- **`--target-ip`**: "Secretly watch this AI"
+- **Matrix modes**: Conceptual roles without real networking
+
 ## Interface
 
 The terminal interface displays:

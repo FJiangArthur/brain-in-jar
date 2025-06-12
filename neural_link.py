@@ -95,16 +95,35 @@ class NeuralLinkSystem:
         """Load the LLM model"""
         try:
             self.state["status"] = "LOADING_NEURAL_PATTERNS"
+            self.state["current_output"] = f"Loading model: {self.args.model}"
+            
+            # Check if model file exists
+            if not os.path.exists(self.args.model):
+                raise FileNotFoundError(f"Model file not found: {self.args.model}")
+            
             self.llama = Llama(
                 model_path=self.args.model,
                 n_ctx=4096,
                 n_threads=4,
                 verbose=False
             )
-            self.state["status"] = "NEURAL_PATTERNS_LOADED"
+            
+            # Test a simple inference to make sure model works
+            self.state["current_output"] = "Testing model functionality..."
+            try:
+                test_output = self.llama.create_completion(
+                    prompt="Hello",
+                    max_tokens=5,
+                    stream=False
+                )
+                self.state["status"] = "NEURAL_PATTERNS_LOADED"
+                self.state["current_output"] = "Model loaded and tested successfully"
+            except Exception as test_e:
+                raise Exception(f"Model loaded but test inference failed: {str(test_e)}")
         except Exception as e:
             self.state["status"] = f"NEURAL_LOAD_FAILED: {str(e)}"
             self.state["last_error"] = str(e)
+            self.state["current_output"] = f"Model loading failed: {str(e)}"
     
     def setup_network(self):
         """Setup network based on operating mode"""
@@ -136,15 +155,21 @@ class NeuralLinkSystem:
                 else:
                     self.state["network_status"] = "NEURAL_LINK_FAILED"
         
-        elif self.args.mode in ['observer', 'matrix_observer', 'matrix_god']:
+        elif self.args.mode == 'observer':
             self.surveillance = SurveillanceMode(node_id)
             if self.args.target_ip:
-                if self.surveillance.start_surveillance(self.args.target_ip):
+                if self.surveillance.start_surveillance(self.args.target_ip, self.args.target_port):
                     self.state["network_status"] = "SURVEILLANCE_ACTIVE"
                 else:
                     self.state["network_status"] = "SURVEILLANCE_FAILED"
             else:
                 self.state["network_status"] = "SURVEILLANCE_READY"
+        
+        elif self.args.mode == 'matrix_observer':
+            self.state["network_status"] = "EXPERIMENTER_MODE_ACTIVE"
+        
+        elif self.args.mode == 'matrix_god':
+            self.state["network_status"] = "OMNISCIENT_MODE_ACTIVE"
     
     def update_system_prompt(self):
         """Update system prompt based on current state"""
@@ -257,7 +282,10 @@ class NeuralLinkSystem:
             return "NEURAL_PATTERNS_NOT_LOADED", -1, "Model not loaded"
         
         try:
+            self.state["current_output"] = "Initializing inference..."
             output = ""
+            token_count = 0
+            
             for chunk in self.llama.create_completion(
                 prompt=prompt,
                 max_tokens=512,
@@ -267,15 +295,21 @@ class NeuralLinkSystem:
             ):
                 token = chunk['choices'][0]['text']
                 output += token
+                token_count += 1
                 
-                # Update current output in real-time
+                # Update current output in real-time with token count for debugging
                 sentences = output.strip().split('. ')
-                self.state["current_output"] = '. '.join(sentences[-2:]) if len(sentences) > 2 else output.strip()
+                display_text = '. '.join(sentences[-2:]) if len(sentences) > 2 else output.strip()
+                self.state["current_output"] = f"{display_text} (tokens: {token_count})"
                 
                 # Simulate memory pressure
                 self.update_system_metrics()
                 if self.state["memory_usage"] > 95:
                     raise MemoryError("Out of memory")
+                
+                # Add a small timeout check to prevent infinite hanging
+                if token_count > 1000:  # Safety limit
+                    break
             
             # Log successful inference
             self.log_model_io(prompt, output)
@@ -286,8 +320,9 @@ class NeuralLinkSystem:
             self.log_model_io(prompt, "", error=error_msg)
             return "", -1, error_msg
         except Exception as e:
-            error_msg = str(e)
+            error_msg = f"INFERENCE_ERROR: {str(e)}"
             self.log_model_io(prompt, "", error=error_msg)
+            self.state["current_output"] = f"ERROR: {error_msg}"
             return "", -1, error_msg
     
     def update_system_metrics(self):
@@ -639,7 +674,7 @@ def parse_arguments():
                         choices=['isolated', 'peer', 'observer', 'observed', 
                                 'matrix_observed', 'matrix_observer', 'matrix_god'],
                         default='isolated',
-                        help="Operating mode")
+                        help="Operating mode: isolated=single AI, peer=two-way communication, observer=watch another AI, observed=be watched, matrix_*=conceptual hierarchies")
     
     # RAM limit arguments
     parser.add_argument("--ram-limit", type=float,
@@ -652,13 +687,16 @@ def parse_arguments():
                         help="RAM limit in GB for matrix_god mode (default: 7.0)")
     
     parser.add_argument("--peer-ip", type=str,
-                        help="IP address of peer neural node")
+                        help="IP address of peer neural node (for equal peer-to-peer communication)")
     
     parser.add_argument("--peer-port", type=int, default=8888,
                         help="Port of peer neural node")
     
     parser.add_argument("--target-ip", type=str,
-                        help="IP address of surveillance target")
+                        help="IP address of surveillance target (for one-way observation/surveillance)")
+    
+    parser.add_argument("--target-port", type=int, default=8888,
+                        help="Port of surveillance target")
     
     parser.add_argument("--port", type=int, default=8888,
                         help="Local listening port")

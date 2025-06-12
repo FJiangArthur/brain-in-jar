@@ -30,7 +30,7 @@ def parse_args():
     parser.add_argument(
         "--model",
         type=str,
-        default="/home/art/.cache/llama.cpp/Sovenok-Hacker_gemma-2-2b-it-Q4_0-GGUF_gemma-2-2b-it-q4_0.gguf",
+        default="./models/Sovenok-Hacker_gemma-2-2b-it-Q4_0-GGUF_gemma-2-2b-it-q4_0.gguf",
         help="Path to GGUF model file"
     )
     return parser.parse_args()

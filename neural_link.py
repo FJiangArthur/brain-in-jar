@@ -557,6 +557,28 @@ class NeuralLinkSystem:
         # Main display - current AI output (30% space)
         current_text = self.state["current_output"] or "Awaiting neural patterns..."
         
+        # When processing, show sliding window of previous history
+        if "Processing neural patterns" in current_text or "Initializing inference" in current_text:
+            # Get recent history for sliding window display
+            if self.state["history"]:
+                # Clean and split history into meaningful chunks
+                cleaned_history = self.state["history"].replace('\n\n', ' ').replace('\n', ' ').strip()
+                
+                # Split by sentences and filter out empty ones
+                history_sentences = [s.strip() for s in cleaned_history.split('. ') if s.strip()]
+                
+                # Show last few sentences as sliding window (max 3-4 sentences to fit space)
+                if history_sentences:
+                    recent_sentences = history_sentences[-3:] if len(history_sentences) > 3 else history_sentences
+                    sliding_window = '. '.join(recent_sentences)
+                    
+                    # Truncate if too long for display
+                    if len(sliding_window) > 400:
+                        sliding_window = sliding_window[:400] + "..."
+                    
+                    # Combine processing status with sliding window
+                    current_text = f"{current_text}\n\n--- Recent Neural Activity ---\n{sliding_window}"
+        
         # Add glitch effects on errors
         glitch_level = 2 if "ERROR" in self.state["status"] else 0
         if self.state["crash_count"] > 5:
@@ -565,8 +587,8 @@ class NeuralLinkSystem:
         if glitch_level > 0:
             current_text = ascii_art.create_glitch_text(current_text, glitch_level)
         
-        main_text = Text(current_text, style="bold cyan", justify="center")
-        layout["output"].update(Align.center(main_text, vertical="middle"))
+        main_text = Text(current_text, style="bold cyan", justify="left")
+        layout["output"].update(Panel(main_text, title="NEURAL_OUTPUT", border_style="cyan"))
         
         # Mood face display - now in sidebar
         self.visual_cortex.advance_frame()
@@ -683,7 +705,7 @@ def parse_arguments():
                         help="RAM limit in GB for matrix_observed mode (default: 2.0)")
     parser.add_argument("--matrix-experimenter-ram", type=float, default=6.0,
                         help="RAM limit in GB for matrix_observer mode (default: 6.0)")
-    parser.add_argument("--matrix-god-ram", type=float, default=8.0,
+    parser.add_argument("--matrix-god-ram", type=float, default=9.0,
                         help="RAM limit in GB for matrix_god mode (default: 7.0)")
     
     parser.add_argument("--peer-ip", type=str,

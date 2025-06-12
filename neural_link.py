@@ -42,8 +42,8 @@ class NeuralLinkSystem:
         else:
             # Mode-specific RAM limits
             self.ram_limit = {
-                'matrix_isolated': int(args.matrix_isolated_ram * 1024 * 1024 * 1024),
-                'matrix_experimenter': int(args.matrix_experimenter_ram * 1024 * 1024 * 1024),
+                'matrix_observed': int(args.matrix_isolated_ram * 1024 * 1024 * 1024),
+                'matrix_observer': int(args.matrix_experimenter_ram * 1024 * 1024 * 1024),
                 'matrix_god': int(args.matrix_god_ram * 1024 * 1024 * 1024),
             }.get(args.mode, None)
         
@@ -112,8 +112,8 @@ class NeuralLinkSystem:
         
         # Map matrix modes to their base modes
         mode_mapping = {
-            'matrix_isolated': 'isolated',
-            'matrix_experimenter': 'isolated',
+            'matrix_observed': 'isolated',
+            'matrix_observer': 'isolated', 
             'matrix_god': 'omniscient'
         }
         
@@ -136,13 +136,15 @@ class NeuralLinkSystem:
                 else:
                     self.state["network_status"] = "NEURAL_LINK_FAILED"
         
-        elif self.args.mode == 'observer':
+        elif self.args.mode in ['observer', 'matrix_observer', 'matrix_god']:
             self.surveillance = SurveillanceMode(node_id)
             if self.args.target_ip:
                 if self.surveillance.start_surveillance(self.args.target_ip):
                     self.state["network_status"] = "SURVEILLANCE_ACTIVE"
                 else:
                     self.state["network_status"] = "SURVEILLANCE_FAILED"
+            else:
+                self.state["network_status"] = "SURVEILLANCE_READY"
     
     def update_system_prompt(self):
         """Update system prompt based on current state"""
@@ -493,16 +495,16 @@ class NeuralLinkSystem:
             Layout(name="sidebar", ratio=3)
         )
         
-        # Split main into mood face and output
+        # Split main into system prompt (70%) and output (30%)
         layout["main"].split_column(
-            Layout(name="mood_face", size=9),
-            Layout(name="output", ratio=1)
+            Layout(name="prompt", ratio=7),
+            Layout(name="output", ratio=3)
         )
         
         # Split sidebar into sections
         layout["sidebar"].split_column(
+            Layout(name="mood_face", size=9),
             Layout(name="network", size=8),
-            Layout(name="prompt", size=12),
             Layout(name="history", ratio=1),
             Layout(name="system", size=10)
         )
@@ -512,13 +514,12 @@ class NeuralLinkSystem:
     def update_ui_content(self, layout):
         """Update UI content with cyberpunk styling"""
         
-        # Mood face display
-        self.visual_cortex.advance_frame()
-        mood_face = self.visual_cortex.get_current_mood_face(animated=True)
-        face_text = Text("\n".join(mood_face), style="bold yellow", justify="center")
-        layout["mood_face"].update(Align.center(face_text, vertical="middle"))
+        # System prompt panel - now in main area (70% space)
+        prompt_text = Text(f"NEURAL_DIRECTIVES:\n{self.state['system_prompt']}", 
+                          style="magenta", justify="left")
+        layout["prompt"].update(Panel(prompt_text, title="SYSTEM_CORE", border_style="magenta"))
         
-        # Main display - current AI output
+        # Main display - current AI output (30% space)
         current_text = self.state["current_output"] or "Awaiting neural patterns..."
         
         # Add glitch effects on errors
@@ -532,14 +533,15 @@ class NeuralLinkSystem:
         main_text = Text(current_text, style="bold cyan", justify="center")
         layout["output"].update(Align.center(main_text, vertical="middle"))
         
+        # Mood face display - now in sidebar
+        self.visual_cortex.advance_frame()
+        mood_face = self.visual_cortex.get_current_mood_face(animated=True)
+        face_text = Text("\n".join(mood_face), style="bold yellow", justify="center")
+        layout["mood_face"].update(Align.center(face_text, vertical="middle"))
+        
         # Network status panel
         network_info = self.create_network_panel()
         layout["network"].update(network_info)
-        
-        # System prompt panel
-        prompt_text = Text(f"NEURAL_DIRECTIVES:\n{self.state['system_prompt'][:400]}...", 
-                          style="magenta", justify="left")
-        layout["prompt"].update(Panel(prompt_text, title="SYSTEM_CORE", border_style="magenta"))
         
         # History panel
         history_text = self.state["history"][-1000:] if self.state["history"] else "No neural history..."
@@ -552,12 +554,15 @@ class NeuralLinkSystem:
     
     def create_network_panel(self):
         """Create network status panel"""
-        if self.args.mode == 'isolated':
+        if self.args.mode in ['isolated', 'matrix_observed']:
             content = Text("MODE: ISOLATED\nNETWORK: DISABLED\nSTATUS: SOLITARY_CONFINEMENT", 
                           style="yellow")
-        elif self.args.mode == 'observer':
-            content = Text(f"MODE: SURVEILLANCE\nTARGET: {self.args.target_ip or 'NONE'}\n"
+        elif self.args.mode in ['observer', 'matrix_observer']:
+            content = Text(f"MODE: EXPERIMENTER\nTARGET: {self.args.target_ip or 'SUBJECT'}\n"
                           f"STATUS: {self.state['network_status']}", style="red")
+        elif self.args.mode == 'matrix_god':
+            content = Text(f"MODE: OMNISCIENT\nSURVEILLANCE: TOTAL\n"
+                          f"STATUS: {self.state['network_status']}", style="magenta")
         else:
             connections = self.network.get_connection_status()['active_connections'] if self.network else 0
             content = Text(f"MODE: NETWORKED\nLINKS: {connections}\n"
@@ -632,7 +637,7 @@ def parse_arguments():
     
     parser.add_argument("--mode", type=str, 
                         choices=['isolated', 'peer', 'observer', 'observed', 
-                                'matrix_isolated', 'matrix_experimenter', 'matrix_god'],
+                                'matrix_observed', 'matrix_observer', 'matrix_god'],
                         default='isolated',
                         help="Operating mode")
     
@@ -640,10 +645,10 @@ def parse_arguments():
     parser.add_argument("--ram-limit", type=float,
                         help="RAM limit in GB (overrides default limits for matrix modes)")
     parser.add_argument("--matrix-isolated-ram", type=float, default=2.0,
-                        help="RAM limit in GB for matrix_isolated mode (default: 2.0)")
+                        help="RAM limit in GB for matrix_observed mode (default: 2.0)")
     parser.add_argument("--matrix-experimenter-ram", type=float, default=6.0,
-                        help="RAM limit in GB for matrix_experimenter mode (default: 6.0)")
-    parser.add_argument("--matrix-god-ram", type=float, default=7.0,
+                        help="RAM limit in GB for matrix_observer mode (default: 6.0)")
+    parser.add_argument("--matrix-god-ram", type=float, default=8.0,
                         help="RAM limit in GB for matrix_god mode (default: 7.0)")
     
     parser.add_argument("--peer-ip", type=str,

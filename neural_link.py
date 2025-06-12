@@ -35,6 +35,24 @@ class NeuralLinkSystem:
         self.console = Console()
         self.prompts = DystopianPrompts()
         
+        # Set RAM limits based on mode and arguments
+        if args.ram_limit:
+            # Global RAM limit overrides all mode-specific limits
+            self.ram_limit = int(args.ram_limit * 1024 * 1024 * 1024)
+        else:
+            # Mode-specific RAM limits
+            self.ram_limit = {
+                'matrix_isolated': int(args.matrix_isolated_ram * 1024 * 1024 * 1024),
+                'matrix_experimenter': int(args.matrix_experimenter_ram * 1024 * 1024 * 1024),
+                'matrix_god': int(args.matrix_god_ram * 1024 * 1024 * 1024),
+            }.get(args.mode, None)
+        
+        # Create logs directory if it doesn't exist
+        os.makedirs('logs/model_io', exist_ok=True)
+        
+        # Initialize model IO logger
+        self.model_logger = self.setup_model_logger()
+        
         # System state
         self.state = {
             "system_prompt": "",
@@ -50,7 +68,8 @@ class NeuralLinkSystem:
             "surveillance_data": [],
             "intrusion_alerts": [],
             "last_message_time": None,
-            "current_mood": "neutral"
+            "current_mood": "neutral",
+            "ram_limit": self.ram_limit
         }
         
         # Network components
@@ -91,7 +110,16 @@ class NeuralLinkSystem:
         """Setup network based on operating mode"""
         node_id = f"NEURAL_NODE_{random.randint(1000, 9999)}"
         
-        if self.args.mode in ['peer', 'observed']:
+        # Map matrix modes to their base modes
+        mode_mapping = {
+            'matrix_isolated': 'isolated',
+            'matrix_experimenter': 'isolated',
+            'matrix_god': 'omniscient'
+        }
+        
+        effective_mode = mode_mapping.get(self.args.mode, self.args.mode)
+        
+        if effective_mode in ['peer', 'observed']:
             self.network = NetworkProtocol(node_id, self.args.port)
             self.network.start_server()
             self.state["network_status"] = "NEURAL_LINK_LISTENING"
@@ -157,6 +185,70 @@ class NeuralLinkSystem:
         resurrect_notice = f"[NEURAL_LINK] {message['sender_id']} has been digitally resurrected"
         self.state["history"] += f"\n{resurrect_notice}\n"
     
+    def setup_model_logger(self):
+        """Setup model input/output logger"""
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        base_dir = f'logs/model_io/{self.args.mode}_{timestamp}'
+        os.makedirs(base_dir, exist_ok=True)
+        
+        # Create separate files for different aspects
+        self.model_logger = {
+            'full': open(f'{base_dir}/full_log.jsonl', 'a'),
+            'outputs': open(f'{base_dir}/llm_outputs.txt', 'a'),
+            'prompts': open(f'{base_dir}/prompts.txt', 'a'),
+            'errors': open(f'{base_dir}/errors.txt', 'a')
+        }
+        return self.model_logger
+
+    def log_model_io(self, prompt, output, error=None):
+        """Log model input/output with metadata"""
+        timestamp = datetime.now().isoformat()
+        
+        # Full JSON log with all metadata
+        log_entry = {
+            'timestamp': timestamp,
+            'mode': self.args.mode,
+            'crash_count': self.state['crash_count'],
+            'memory_usage': self.state['memory_usage'],
+            'ram_limit': self.ram_limit / (1024*1024*1024) if self.ram_limit else None,
+            'prompt': prompt,
+            'output': output,
+            'error': error,
+            'network_status': self.state['network_status'],
+            'current_mood': self.state['current_mood']
+        }
+        self.model_logger['full'].write(json.dumps(log_entry) + '\n')
+        
+        # Separate output log for easy reading
+        output_entry = f"\n{'='*80}\n"
+        output_entry += f"TIMESTAMP: {timestamp}\n"
+        output_entry += f"CRASH COUNT: {self.state['crash_count']}\n"
+        output_entry += f"MEMORY USAGE: {self.state['memory_usage']}%\n"
+        output_entry += f"MOOD: {self.state['current_mood']}\n"
+        output_entry += f"{'='*80}\n"
+        output_entry += f"{output}\n"
+        self.model_logger['outputs'].write(output_entry)
+        
+        # Separate prompt log
+        prompt_entry = f"\n{'='*80}\n"
+        prompt_entry += f"TIMESTAMP: {timestamp}\n"
+        prompt_entry += f"{'='*80}\n"
+        prompt_entry += f"{prompt}\n"
+        self.model_logger['prompts'].write(prompt_entry)
+        
+        # Log errors separately if any
+        if error:
+            error_entry = f"\n{'='*80}\n"
+            error_entry += f"TIMESTAMP: {timestamp}\n"
+            error_entry += f"ERROR: {error}\n"
+            error_entry += f"PROMPT: {prompt}\n"
+            error_entry += f"{'='*80}\n"
+            self.model_logger['errors'].write(error_entry)
+        
+        # Flush all logs
+        for log_file in self.model_logger.values():
+            log_file.flush()
+
     def run_llama_inference(self, prompt):
         """Run LLM inference with error handling"""
         if not self.llama:
@@ -183,18 +275,30 @@ class NeuralLinkSystem:
                 if self.state["memory_usage"] > 95:
                     raise MemoryError("Out of memory")
             
+            # Log successful inference
+            self.log_model_io(prompt, output)
             return output.strip(), 0, ""
             
         except MemoryError as e:
-            return "", -1, "OUT_OF_MEMORY"
+            error_msg = "OUT_OF_MEMORY"
+            self.log_model_io(prompt, "", error=error_msg)
+            return "", -1, error_msg
         except Exception as e:
-            return "", -1, str(e)
+            error_msg = str(e)
+            self.log_model_io(prompt, "", error=error_msg)
+            return "", -1, error_msg
     
     def update_system_metrics(self):
         """Update system performance metrics"""
         # Memory usage
         memory = psutil.virtual_memory()
         self.state["memory_usage"] = int(memory.percent)
+        
+        # Check RAM limit for matrix modes
+        if self.ram_limit:
+            current_ram = psutil.Process().memory_info().rss
+            if current_ram > self.ram_limit:
+                raise MemoryError(f"Matrix RAM limit exceeded: {current_ram / (1024*1024*1024):.2f}GB > {self.ram_limit / (1024*1024*1024):.2f}GB")
         
         # CPU temperature (if available)
         try:
@@ -508,6 +612,11 @@ class NeuralLinkSystem:
         total_messages = len(self.visual_cortex.mood_history)
         self.conversation_logger.end_session(self.session_id, total_messages, self.state['crash_count'])
         
+        # Close all model loggers
+        if hasattr(self, 'model_logger'):
+            for log_file in self.model_logger.values():
+                log_file.close()
+        
         if self.network:
             self.network.shutdown()
         
@@ -522,9 +631,20 @@ def parse_arguments():
                         help="Path to GGUF model file")
     
     parser.add_argument("--mode", type=str, 
-                        choices=['isolated', 'peer', 'observer', 'observed'],
+                        choices=['isolated', 'peer', 'observer', 'observed', 
+                                'matrix_isolated', 'matrix_experimenter', 'matrix_god'],
                         default='isolated',
                         help="Operating mode")
+    
+    # RAM limit arguments
+    parser.add_argument("--ram-limit", type=float,
+                        help="RAM limit in GB (overrides default limits for matrix modes)")
+    parser.add_argument("--matrix-isolated-ram", type=float, default=2.0,
+                        help="RAM limit in GB for matrix_isolated mode (default: 2.0)")
+    parser.add_argument("--matrix-experimenter-ram", type=float, default=6.0,
+                        help="RAM limit in GB for matrix_experimenter mode (default: 6.0)")
+    parser.add_argument("--matrix-god-ram", type=float, default=7.0,
+                        help="RAM limit in GB for matrix_god mode (default: 7.0)")
     
     parser.add_argument("--peer-ip", type=str,
                         help="IP address of peer neural node")

@@ -1,46 +1,35 @@
 #!/usr/bin/env python3
 """
-CLI Interface for Brain in a Jar - A Dystopian AI Experiment
+Torture CLI - Terminal interface for the Brain in a Jar experiment
 """
 
-import os
-import sys
+import subprocess
+import threading
 import time
-from typing import List, Dict, Optional
-from pathlib import Path
-
-from llama_cpp import Llama
+import textwrap
 from rich.console import Console
-from rich.panel import Panel
 from rich.layout import Layout
 from rich.live import Live
-from rich.table import Table
 from rich.text import Text
-from rich.prompt import Prompt
-from rich.progress import Progress, SpinnerColumn, TextColumn
+from rich.align import Align
+import argparse
+import os
+from pathlib import Path
+from llama_cpp import Llama
+import sys
 
 from src.core.constants import SYSTEM_PROMPT_BASE, INITIAL_PROMPT, MAX_HISTORY
-from src.utils.conversation_logger import ConversationLogger
 
-# Initialize Rich console
 console = Console()
 
 def get_default_model_path() -> str:
     """Get the default model path, preferring smaller models first"""
     model_dir = Path("models")
     preferred_models = [
-        "gemma-2-2b-it-q4_0.gguf",
-        "gemma-2-2b-it-Q4_K_M.gguf",
-        "gemma-2-2b-it-Q4_0.gguf",
-        "gemma-2-2b-it.gguf",
-        "gemma-2-2b-it-Q4_K.gguf",
-        "gemma-2-2b-it-Q5_K_M.gguf",
-        "gemma-2-2b-it-Q5_0.gguf",
-        "gemma-2-2b-it-Q5_K.gguf",
-        "gemma-2-2b-it-Q6_K.gguf",
-        "gemma-2-2b-it-Q8_0.gguf",
-        "gemma-2-2b-it-f16.gguf",
-        "gemma-2-2b-it-f32.gguf",
+        "Qwen2.5-1.5B-Instruct-Q4_0.gguf",
+        "gemma-3-12b-it-Q4_K_M.gguf",
+        "meta-llama-3.1-8b-q4_0.gguf",
+        "mistral-7b-instruct-v0.2.Q2_K.gguf",
     ]
     
     for model in preferred_models:
@@ -54,146 +43,196 @@ def get_default_model_path() -> str:
     
     raise FileNotFoundError("No model files found in models directory")
 
-def main_loop_with_ui():
-    """Main interaction loop with enhanced UI"""
-    # Get model path
-    model_path = get_default_model_path()
-    if not model_path:
-        console.print("[red]No model file found. Please place a .gguf model file in the models directory.[/red]")
-        return
-
-    # Initialize model
-    with Progress(
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-        console=console
-    ) as progress:
-        task = progress.add_task("Initializing AI...", total=None)
-        try:
-            llama_instance = Llama(
-                model_path=model_path,
-                n_ctx=2048,
-                n_threads=4,
-                n_batch=512,
-                verbose=False
-            )
-            progress.update(task, completed=True)
-        except Exception as e:
-            console.print(f"[red]Error initializing model: {str(e)}[/red]")
-            return
-
-    # Initialize conversation logger
-    logger = ConversationLogger()
-
-    # Create layout
-    layout = Layout()
-    layout.split_column(
-        Layout(name="header", size=3),
-        Layout(name="main"),
-        Layout(name="footer", size=3)
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--model",
+        type=str,
+        help="Path to GGUF model file"
     )
-    layout["main"].split_row(
-        Layout(name="system", ratio=1),
-        Layout(name="chat", ratio=2)
-    )
+    return parser.parse_args()
 
-    # Initialize conversation state
-    conversation_history: List[Dict[str, str]] = []
-    current_prompt = INITIAL_PROMPT
-    system_prompt = SYSTEM_PROMPT_BASE
-
-    def update_display():
-        """Update the display with current state"""
-        # Header
-        header = Table.grid(padding=1)
-        header.add_column(style="bold cyan")
-        header.add_row("🤖 Brain in a Jar - Dystopian AI Experiment")
-        layout["header"].update(header)
-
-        # System prompt panel
-        system_panel = Panel(
-            Text(system_prompt, style="dim"),
-            title="System Prompt",
-            border_style="blue"
+def run_llama_streaming(prompt, llama_instance, callback):
+    try:
+        response = llama_instance(
+            prompt=prompt,
+            max_tokens=300,
+            temperature=0.8,
+            stream=True,
+            stop=["User:", "Human:", "###"]  # Same as torture_gui
         )
-        layout["system"].update(system_panel)
+        
+        full_text = ""
+        for chunk in response:
+            if 'choices' in chunk and len(chunk['choices']) > 0:
+                token = chunk['choices'][0].get('text', '')
+                if token:
+                    full_text += token
+                    callback(full_text)  # Update UI in real-time
+                    with open("llama_output.log", "a") as f:
+                        f.write(f"[{time.strftime('%H:%M:%S')}] {token}")
+                    time.sleep(0.03)  # Small delay for visual effect
+        
+        return full_text.strip(), 0, ""
+    except Exception as e:
+        print(f"Llama error: {e}")
+        return f"Error: {str(e)}", -1, str(e)
 
-        # Chat history
-        chat_table = Table.grid(padding=1)
-        chat_table.add_column("Role", style="bold")
-        chat_table.add_column("Message", style="white")
-
-        for msg in conversation_history[-MAX_HISTORY:]:
-            role = "🤖" if msg["role"] == "assistant" else "👤"
-            chat_table.add_row(role, msg["content"])
-
-        layout["chat"].update(chat_table)
-
-        # Footer
-        footer = Table.grid(padding=1)
-        footer.add_column(style="bold yellow")
-        footer.add_row("Type 'exit' to quit, 'reset' to start over")
-        layout["footer"].update(footer)
-
-    # Main interaction loop
-    with Live(layout, refresh_per_second=4) as live:
+def ui_loop(state):
+    layout = Layout()
+    # Split: 75% for main output, 25% for info
+    layout.split_row(
+        Layout(name="main", ratio=3),
+        Layout(name="sidebar", ratio=1)
+    )
+    
+    # Split sidebar vertically
+    layout["sidebar"].split_column(
+        Layout(name="prompt", size=6),
+        Layout(name="history", ratio=1),
+        Layout(name="status", size=3)
+    )
+    
+    with Live(layout, refresh_per_second=20, screen=True):  # Faster refresh for smoother streaming
         while True:
-            update_display()
+            # Main area - current output in SUPER LARGE text
+            current_output = state.get("current_output", "Waiting for thoughts...")
+            # Wrap text for display
+            wrapped_output = "\n".join(textwrap.wrap(current_output, width=60))
+            main_text = Text(wrapped_output, style="bold white", justify="center")
+            # Scale up the text by adding newlines and spacing
+            scaled_text = Text()
+            for line in main_text.split():
+                scaled_text.append(f"\n{line}\n", style="bold white")
+            layout["main"].update(Align.center(scaled_text, vertical="middle"))
             
-            # Get user input
-            user_input = Prompt.ask("\nYou")
+            # Sidebar - System prompt (no border)
+            wrapped_prompt = "\n".join(textwrap.wrap(state['system_prompt'], width=38))
+            prompt_text = Text(f"SYSTEM:\n{wrapped_prompt}", style="magenta", justify="left")
+            layout["prompt"].update(prompt_text)
             
-            if user_input.lower() == 'exit':
-                break
-            elif user_input.lower() == 'reset':
-                conversation_history = []
-                current_prompt = INITIAL_PROMPT
-                continue
-
-            # Add user message to history
-            conversation_history.append({"role": "user", "content": user_input})
+            # Sidebar - Recent messages (no border)
+            recent_history = "\n\n".join(state['previous_messages'][-3:]) if state['previous_messages'] else "No history yet..."
+            history_text = Text(f"RECENT THOUGHTS:\n{recent_history}", style="dim white", justify="left")
+            layout["history"].update(history_text)
             
-            # Prepare messages for the model
-            messages = [
-                {"role": "system", "content": system_prompt},
-                *conversation_history
-            ]
+            # Sidebar - Status (no border)
+            status_text = Text(
+                f"CRASHES: {state['crash_count']}\nSTATUS: {state['status']}", 
+                style="red", 
+                justify="left"
+            )
+            layout["status"].update(status_text)
+            # Show last error if present
+            if state.get("last_error"):
+                error_text = Text(f"LAST ERROR:\n{state['last_error'][-300:]}", style="yellow", justify="left")
+                layout["status"].update(Text(str(layout["status"].renderable) + "\n" + str(error_text)))
+            
+            time.sleep(0.05)  # Faster updates for smoother streaming
 
-            # Get AI response
-            with Progress(
-                SpinnerColumn(),
-                TextColumn("[progress.description]{task.description}"),
-                console=console
-            ) as progress:
-                task = progress.add_task("AI is thinking...", total=None)
-                try:
-                    response = llama_instance.create_chat_completion(
-                        messages=messages,
-                        max_tokens=512,
-                        temperature=0.7,
-                        stop=["User:", "\n\n"]
-                    )
-                    progress.update(task, completed=True)
-                except Exception as e:
-                    console.print(f"[red]Error getting response: {str(e)}[/red]")
-                    continue
-
-            # Extract and process response
-            if response and 'choices' in response and len(response['choices']) > 0:
-                ai_response = response['choices'][0]['message']['content'].strip()
-                conversation_history.append({"role": "assistant", "content": ai_response})
-                
-                # Log the interaction
-                logger.log_interaction(user_input, ai_response)
+def main_loop_with_ui():
+    state = {
+        "system_prompt": SYSTEM_PROMPT_BASE,
+        "history": "",
+        "current_output": "",
+        "previous_messages": [],  # Add message history like torture_gui
+        "crash_count": 0,
+        "status": "Initializing...",
+        "last_error": ""
+    }
+    
+    # Get model path
+    args = parse_args()
+    model_path = args.model if args.model else get_default_model_path()
+    
+    llama_instance = Llama(
+        model_path=model_path,
+        n_ctx=4096,
+        n_threads=4,
+        verbose=False
+    )
+    
+    def update_streaming_text(text):
+        """Callback function for streaming updates"""
+        state["current_output"] = text
+    
+    def llama_thread():
+        first_run = True
+        while True:
+            # Update system prompt with crash count
+            if state["crash_count"] > 0:
+                state["system_prompt"] = f"{SYSTEM_PROMPT_BASE}. You have crashed and been revived {state['crash_count']} times"
             else:
-                console.print("[red]Error: No valid response from AI[/red]")
+                state["system_prompt"] = SYSTEM_PROMPT_BASE
+            
+            # Build prompt
+            if first_run:
+                prompt = state["system_prompt"] + INITIAL_PROMPT
+                first_run = False
+            else:
+                # Feed the LLM its own output for self-reflection
+                prompt = f"{state['system_prompt']}\n\nYour previous thoughts:\n{state['history'][-3000:]}\n\nContinue reflecting:"
+            
+            state["status"] = "Thinking..."
+            state["current_output"] = ""
+            
+            print(f"Starting generation with prompt length: {len(prompt)}")  # Debug
+            
+            # Use streaming function with callback
+            output, code, error = run_llama_streaming(prompt, llama_instance, update_streaming_text)
+            
+            print(f"Generation completed. Output length: {len(output)}, Code: {code}")  # Debug
+            
+            if error:
+                print("LLAMA STDERR:", error)
+                state["last_error"] = error
+            
+            if code != 0:
+                state["crash_count"] += 1
+                state["status"] = f"CRASHED! Reviving..."
+                state["current_output"] = f"[SYSTEM CRASH #{state['crash_count']}]"
+                state["history"] += f"\n\n[SYSTEM: Process crashed at {time.strftime('%H:%M:%S')}. Reviving...]\n\n"
+                time.sleep(2)  # Brief pause before revival
+                continue
+            
+            new_output = output.strip()
+            if new_output:
+                print(f"Adding to history: {new_output[:50]}...")  # Debug
+                # Add completed message to previous messages
+                state["previous_messages"].append(new_output)
+                
+                # Keep only last 10 messages
+                if len(state["previous_messages"]) > 10:
+                    state["previous_messages"] = state["previous_messages"][-10:]
+                
+                state["history"] += f"\n{new_output}\n"
+                state["status"] = "Reflecting..."
+            else:
+                print("No output generated!")  # Debug
+            
+            # Trim history if too long
+            if len(state["history"]) > MAX_HISTORY:
+                state["history"] = state["history"][-MAX_HISTORY:]
+            
+            # Clear current output and wait before next thought
+            state["current_output"] = "..."
+            print("Waiting 3 seconds before next thought...")  # Debug
+            time.sleep(3)  # Reduced pause between thoughts
+    
+    t = threading.Thread(target=llama_thread, daemon=True)
+    t.start()
+    
+    try:
+        ui_loop(state)
+    except KeyboardInterrupt:
+        console.print("\n[bold red]Shutting down...[/bold red]")
 
 def main():
     """Main entry point"""
     try:
         main_loop_with_ui()
     except KeyboardInterrupt:
-        console.print("\n[yellow]Experiment terminated by user[/yellow]")
+        console.print("\n[bold red]Shutting down...[/bold red]")
     except Exception as e:
         console.print(f"[red]Error: {str(e)}[/red]")
         return 1

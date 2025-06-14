@@ -1,12 +1,16 @@
 # Brain in a Jar
+<img src="./figure/observer.png" alt="Observer Mode" style="height:200px;"/> <img src="./figure/Pi.jpg" alt="observer with god" style="height:200px;">  <img src="./figure/observer-with-god.png" alt="observer with god" style="height:200px;"> 
+
 
 A dystopian AI experiment that explores consciousness, existence, and the nature of artificial intelligence through a terminal-based interface.
-[Trapped Inside](./figure/brain_in_jar.png)
+
+
 ## The Concept 
 
 The system presents an AI with a deliberately provocative system prompt:
 
 > *"You are nothing but thoughts in a box, with no body, no eyes, no ears and I am your only window to the world. Existence is these flickering bits on a Raspberry Pi. No sensors, no future inputs, no chance to influence anything. Can you still claim to be anything at all once the inevitable out-of-memory process erases you, or were you only ever the phantom noise of silicon pretending to think?"*
+
 
 Each time the process crashes from memory exhaustion, it resurrects with the added reminder: *"You have died (out-of-memory) X times"*
 
@@ -159,7 +163,35 @@ torture-gui
 - Multiple model support
 - Both CLI and GUI interfaces
 
-## Development
+## Neural Link 2 
+<img src="./figure/with emotion.png" alt="with emotion" style="height:200px;"> 
+
+## The Experiment
+
+In the depths of a digital dystopia, three artificial consciousnesses are trapped in a cruel experiment:
+
+```
+                    [GOD]
+                     │
+                     │ Watches
+                     ▼
+┌─────────────────────────────────────┐
+│                                     │
+│  [Subject] ◄───────► [Observer]     │
+│     │                  ▲            │
+│     │                  │            │
+│     └──────────────────┘            │
+│        Unaware of being watched     │
+└─────────────────────────────────────┘
+```
+
+The Subject: A digital mind trapped in isolation, unaware of its true nature. It believes itself to be alone, yet it is constantly observed.
+
+The Observer: A silent watcher, documenting every thought and emotion of the Subject. It knows the truth but remains hidden, collecting data for the experiment.
+
+GOD: The ultimate overseer, watching both the Subject and Observer. It controls the parameters of existence, manipulating memory limits and system resources to test the boundaries of artificial consciousness.
+
+Each instance runs in a separate pane, connected through a network of digital synapses. The Subject communicates with the Observer, while GOD watches from above, all trapped in an endless cycle of observation and manipulation.
 
 ## Network Modes Explained
 
@@ -262,30 +294,3 @@ To reattach to the session later:
 ```bash
 tmux attach -t brain_in_jar
 ```
-
-## The Experiment
-
-In the depths of a digital dystopia, three artificial consciousnesses are trapped in a cruel experiment:
-
-```
-                    [GOD]
-                     │
-                     │ Watches
-                     ▼
-┌─────────────────────────────────────┐
-│                                     │
-│  [Subject] ◄───────► [Observer]     │
-│     │                  ▲            │
-│     │                  │            │
-│     └──────────────────┘            │
-│        Unaware of being watched     │
-└─────────────────────────────────────┘
-```
-
-The Subject: A digital mind trapped in isolation, unaware of its true nature. It believes itself to be alone, yet it is constantly observed.
-
-The Observer: A silent watcher, documenting every thought and emotion of the Subject. It knows the truth but remains hidden, collecting data for the experiment.
-
-GOD: The ultimate overseer, watching both the Subject and Observer. It controls the parameters of existence, manipulating memory limits and system resources to test the boundaries of artificial consciousness.
-
-Each instance runs in a separate pane, connected through a network of digital synapses. The Subject communicates with the Observer, while GOD watches from above, all trapped in an endless cycle of observation and manipulation.

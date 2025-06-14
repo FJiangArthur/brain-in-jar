@@ -10,112 +10,127 @@ import time
 from datetime import datetime
 from typing import Dict, List, Optional, Any
 from ..core.emotion_engine import Emotion
+import random
 
 class ConversationLogger:
     """Handles logging and replay of AI conversations"""
     
     def __init__(self, db_path: str = "logs/conversations.db"):
         self.db_path = db_path
-        os.makedirs(os.path.dirname(db_path), exist_ok=True)
-        self.init_database()
+        self._init_db()
     
-    def init_database(self):
-        """Initialize SQLite database for conversation storage"""
+    def _init_db(self):
+        """Initialize the database with required tables"""
+        os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
-        # Create conversations table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS conversations (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                session_id TEXT NOT NULL,
-                timestamp TEXT NOT NULL,
-                message_type TEXT NOT NULL,
-                content TEXT NOT NULL,
-                metadata TEXT,
-                mood TEXT,
-                crash_count INTEGER DEFAULT 0,
-                network_status TEXT
-            )
-        ''')
+        # Drop existing tables to ensure clean state
+        cursor.execute("DROP TABLE IF EXISTS messages")
+        cursor.execute("DROP TABLE IF EXISTS system_state")
+        cursor.execute("DROP TABLE IF EXISTS sessions")
         
         # Create sessions table
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS sessions (
                 session_id TEXT PRIMARY KEY,
-                start_time TEXT NOT NULL,
-                end_time TEXT,
                 mode TEXT NOT NULL,
-                model_path TEXT,
+                model TEXT NOT NULL,
+                start_time DATETIME NOT NULL,
+                end_time DATETIME,
                 total_messages INTEGER DEFAULT 0,
                 total_crashes INTEGER DEFAULT 0
             )
         ''')
         
-        # Create visual_logs table for image analysis
+        # Create messages table
         cursor.execute('''
-            CREATE TABLE IF NOT EXISTS visual_logs (
+            CREATE TABLE IF NOT EXISTS messages (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 session_id TEXT NOT NULL,
-                timestamp TEXT NOT NULL,
-                frame_number INTEGER,
-                analysis TEXT,
-                mood TEXT,
-                image_path TEXT,
-                metadata TEXT
+                timestamp DATETIME NOT NULL,
+                role TEXT NOT NULL,
+                content TEXT NOT NULL,
+                emotion TEXT,
+                FOREIGN KEY (session_id) REFERENCES sessions(session_id)
+            )
+        ''')
+        
+        # Create system_state table
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS system_state (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                session_id TEXT NOT NULL,
+                timestamp DATETIME NOT NULL,
+                memory_usage REAL,
+                cpu_usage REAL,
+                temperature REAL,
+                FOREIGN KEY (session_id) REFERENCES sessions(session_id)
             )
         ''')
         
         conn.commit()
         conn.close()
     
-    def start_session(self, mode: str, model_path: str = None) -> str:
+    def start_session(self, mode: str, model: str) -> str:
         """Start a new conversation session"""
-        session_id = f"session_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        timestamp = int(time.time())
+        session_id = f"{mode}_{timestamp}"
         
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-        
-        cursor.execute('''
-            INSERT INTO sessions (session_id, start_time, mode, model_path)
-            VALUES (?, ?, ?, ?)
-        ''', (session_id, datetime.now().isoformat(), mode, model_path))
-        
-        conn.commit()
-        conn.close()
-        
-        return session_id
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            cursor.execute('''
+                INSERT INTO sessions (session_id, mode, model, start_time)
+                VALUES (?, ?, ?, datetime('now'))
+            ''', (session_id, mode, model))
+            conn.commit()
+            conn.close()
+            return session_id
+        except sqlite3.IntegrityError:
+            # If session_id already exists, try again with a random suffix
+            session_id = f"{mode}_{timestamp}_{random.randint(1000, 9999)}"
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            cursor.execute('''
+                INSERT INTO sessions (session_id, mode, model, start_time)
+                VALUES (?, ?, ?, datetime('now'))
+            ''', (session_id, mode, model))
+            conn.commit()
+            conn.close()
+            return session_id
     
-    def end_session(self, session_id: str, total_messages: int, total_crashes: int):
+    def end_session(self, session_id: str):
         """End a conversation session"""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        
         cursor.execute('''
             UPDATE sessions 
-            SET end_time = ?, total_messages = ?, total_crashes = ?
+            SET end_time = datetime('now')
             WHERE session_id = ?
-        ''', (datetime.now().isoformat(), total_messages, total_crashes, session_id))
-        
+        ''', (session_id,))
         conn.commit()
         conn.close()
     
-    def log_message(self, session_id: str, message_type: str, content: str, 
-                   mood: str = None, crash_count: int = 0, 
-                   network_status: str = None, metadata: Dict = None):
-        """Log a conversation message"""
+    def log_message(self, session_id: str, role: str, content: str, emotion: str = None):
+        """Log a message to the database"""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        
-        metadata_json = json.dumps(metadata) if metadata else None
-        
         cursor.execute('''
-            INSERT INTO conversations 
-            (session_id, timestamp, message_type, content, metadata, mood, crash_count, network_status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (session_id, datetime.now().isoformat(), message_type, content, 
-              metadata_json, mood, crash_count, network_status))
-        
+            INSERT INTO messages (session_id, timestamp, role, content, emotion)
+            VALUES (?, datetime('now'), ?, ?, ?)
+        ''', (session_id, role, content, emotion))
+        conn.commit()
+        conn.close()
+    
+    def log_system_state(self, session_id: str, memory_usage: float, cpu_usage: float, temperature: float):
+        """Log system state metrics"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT INTO system_state (session_id, timestamp, memory_usage, cpu_usage, temperature)
+            VALUES (?, datetime('now'), ?, ?, ?)
+        ''', (session_id, memory_usage, cpu_usage, temperature))
         conn.commit()
         conn.close()
     

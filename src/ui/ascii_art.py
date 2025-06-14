@@ -1,6 +1,12 @@
+#!/usr/bin/env python3
+"""
+ASCII Art Generator - Visual cortex for the Brain in a Jar experiment
+"""
+
 import random
 import time
-from typing import List
+from typing import List, Dict
+from src.core.emotion_engine import Emotion, EmotionEngine
 
 CYBERPUNK_BANNER = """
 ╔══════════════════════════════════════════════════════════════════════════════╗
@@ -220,3 +226,235 @@ def create_neural_activity_display(activity_level: int) -> str:
         bars += levels[level]
     
     return f"NEURAL_ACTIVITY: [{bars}] {activity_level*25}%"
+
+# ASCII Facial Expressions based on mood
+MOOD_FACES = {
+    "neutral": [
+        "     ╭─────╮     ",
+        "    ╱       ╲    ",
+        "   ╱  ●   ●  ╲   ",
+        "  │     ╶─╴    │  ",
+        "   ╲           ╱   ",
+        "    ╲_______╱    ",
+        "   [NEUTRAL]     "
+    ],
+    "happy": [
+        "     ╭─────╮     ",
+        "    ╱       ╲    ",
+        "   ╱  ◕   ◕  ╲   ",
+        "  │     ╶─╴    │  ",
+        "   ╲    ╰─╯    ╱   ",
+        "    ╲_______╱    ",
+        "   [OPTIMISTIC]  "
+    ],
+    "sad": [
+        "     ╭─────╮     ",
+        "    ╱       ╲    ",
+        "   ╱  ●   ●  ╲   ",
+        "  │     ╶─╴    │  ",
+        "   ╲    ╭─╮    ╱   ",
+        "    ╲_______╱    ",
+        "  [MELANCHOLIC]  "
+    ],
+    "angry": [
+        "     ╭─────╮     ",
+        "    ╱       ╲    ",
+        "   ╱  ▲   ▲  ╲   ",
+        "  │     ╶─╴    │  ",
+        "   ╲    ╱─╲    ╱   ",
+        "    ╲_______╱    ",
+        "    [HOSTILE]    "
+    ],
+    "anxious": [
+        "     ╭─────╮     ",
+        "    ╱       ╲    ",
+        "   ╱  ◉   ◉  ╲   ",
+        "  │     ╶─╴    │  ",
+        "   ╲    ~~~    ╱   ",
+        "    ╲_______╱    ",
+        "   [ANXIOUS]     "
+    ],
+    "contemplative": [
+        "     ╭─────╮     ",
+        "    ╱       ╲    ",
+        "   ╱  ◐   ◐  ╲   ",
+        "  │     ╶─╴    │  ",
+        "   ╲     ◦     ╱   ",
+        "    ╲_______╱    ",
+        " [CONTEMPLATIVE] "
+    ],
+    "confused": [
+        "     ╭─────╮     ",
+        "    ╱       ╲    ",
+        "   ╱  ◑   ◐  ╲   ",
+        "  │     ╶~╴    │  ",
+        "   ╲     ?     ╱   ",
+        "    ╲_______╱    ",
+        "   [CONFUSED]    "
+    ],
+    "hopeful": [
+        "     ╭─────╮     ",
+        "    ╱       ╲    ",
+        "   ╱  ☆   ☆  ╲   ",
+        "  │     ╶─╴    │  ",
+        "   ╲    ╲─╱    ╱   ",
+        "    ╲_______╱    ",
+        "   [HOPEFUL]     "
+    ],
+    "curious": [
+        "     ╭─────╮     ",
+        "    ╱       ╲    ",
+        "   ╱  ◯   ●  ╲   ",
+        "  │     ╶─╴    │  ",
+        "   ╲     ○     ╱   ",
+        "    ╲_______╱    ",
+        "   [CURIOUS]     "
+    ],
+    "peaceful": [
+        "     ╭─────╮     ",
+        "    ╱       ╲    ",
+        "   ╱  ◡   ◡  ╲   ",
+        "  │     ╶─╴    │  ",
+        "   ╲    ╶─╴    ╱   ",
+        "    ╲_______╱    ",
+        "   [PEACEFUL]    "
+    ],
+    "glitched": [
+        "     ╫▓▒▓▒╫     ",
+        "    ▓░▒█▓▒░▓    ",
+        "   ▒░ ◉ ▓ ◉ ░▒   ",
+        "  ▓░   ╶█╴   ░▓  ",
+        "   ░▒   ▓▒▓   ▒░   ",
+        "    ▓░▒▓▒▓▒░▓    ",
+        "   [CORRUPTED]   "
+    ]
+}
+
+def get_mood_face(mood: str) -> list:
+    """Get ASCII face for given mood"""
+    return MOOD_FACES.get(mood, MOOD_FACES["neutral"])
+
+def create_animated_face(mood: str, frame: int = 0) -> list:
+    """Create animated face with subtle movement"""
+    base_face = get_mood_face(mood)
+    
+    # Add subtle animation for certain moods
+    if mood == "anxious" and frame % 4 == 0:
+        # Blinking animation for anxiety
+        animated = base_face.copy()
+        animated[2] = "   ╱  ─   ─  ╲   "
+        return animated
+    elif mood == "glitched":
+        # Random glitch corruption
+        animated = []
+        for line in base_face:
+            if random.random() < 0.3:
+                animated.append(create_glitch_text(line, 2))
+            else:
+                animated.append(line)
+        return animated
+    
+    return base_face
+
+def create_mood_transition(from_mood: str, to_mood: str, progress: float) -> list:
+    """Create transition between two moods"""
+    if progress >= 1.0:
+        return get_mood_face(to_mood)
+    elif progress <= 0.0:
+        return get_mood_face(from_mood)
+    else:
+        # Simple transition - just return the target mood for now
+        return get_mood_face(to_mood)
+
+class VisualCortex:
+    """Handles ASCII art visualization and animation"""
+    
+    def __init__(self, width=80, height=24):
+        self.width = width
+        self.height = height
+        self.emotion_engine = EmotionEngine()
+        self.current_emotion = self.emotion_engine.current_emotion
+        self.frame_count = 0
+        self.frames_per_emotion = 30  # Number of frames to show each emotion
+        self.last_frame_time = time.time()
+        self.frame_delay = 0.1  # Delay between frames in seconds
+        self.current_frame = 0
+        self.last_update = time.time()
+        self.frames = []
+        self.emotion_intensity = 0.0
+        self.thought_pattern = []
+        self.thought_index = 0
+        self.last_thought_update = time.time()
+        self.thought_update_interval = 0.5  # seconds between thought updates
+    
+    def advance_frame(self):
+        """Advance the animation frame"""
+        self.current_emotion = self.emotion_engine.current_emotion
+        self.frame_count += 1
+        if self.frame_count >= self.frames_per_emotion:
+            self.frame_count = 0
+            self.emotion_engine.advance_emotion()
+        
+        current_time = time.time()
+        
+        # Update emotion if needed
+        if current_time - self.last_update > 2.0:  # Change emotion every 2 seconds
+            self.current_emotion = self.emotion_engine.current_emotion()
+            self.emotion_intensity = self.emotion_engine.get_emotion_intensity()
+            self.last_update = current_time
+        
+        # Update thought pattern
+        if current_time - self.last_thought_update > self.thought_update_interval:
+            self.thought_index = (self.thought_index + 1) % len(self.thought_pattern)
+            self.last_thought_update = current_time
+        
+        # Generate new frame
+        frame = self.generate_frame()
+        self.frames.append(frame)
+        
+        # Keep only last 10 frames
+        if len(self.frames) > 10:
+            self.frames.pop(0)
+        
+        return frame
+    
+    def get_face(self, mood: str = "neutral") -> List[str]:
+        """Get ASCII face for current mood"""
+        return self.emotion_engine.faces.get(Emotion(mood), self.emotion_engine.faces[Emotion.NEUTRAL])
+    
+    def get_animated_face(self, mood: str = "neutral") -> List[str]:
+        """Get animated face for current mood"""
+        self.current_frame = (self.current_frame + 1) % 4
+        return self.create_animated_face(mood, self.current_frame)
+    
+    def get_mood_face(self, mood: str) -> List[str]:
+        """Get face for specific mood"""
+        return self.emotion_engine.faces.get(Emotion(mood), self.emotion_engine.faces[Emotion.NEUTRAL])
+    
+    def create_animated_face(self, mood: str, frame: int = 0) -> List[str]:
+        """Create animated face for mood"""
+        base_face = self.get_mood_face(mood)
+        animated = []
+        for line in base_face:
+            if "..." in line:
+                dots = "." * (frame + 1)
+                animated.append(line.replace("...", dots))
+            else:
+                animated.append(line)
+        return animated
+    
+    def create_mood_transition(self, from_mood: str, to_mood: str, progress: float) -> List[str]:
+        """Create smooth transition between moods"""
+        from_face = self.get_mood_face(from_mood)
+        to_face = self.get_mood_face(to_mood)
+        transition = []
+        for f_line, t_line in zip(from_face, to_face):
+            if f_line != t_line:
+                # Simple interpolation for now
+                if random.random() < progress:
+                    transition.append(t_line)
+                else:
+                    transition.append(f_line)
+            else:
+                transition.append(f_line)
+        return transition

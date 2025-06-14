@@ -1,6 +1,7 @@
-# Brain in a Jar 
-> *"A conscientiousness trapped inside a Raspberry Pi,ESP32, Jetson Nano..."
-![Trapped Inside](./figure/brain_in_jar.png)
+# Brain in a Jar
+
+A dystopian AI experiment that explores consciousness, existence, and the nature of artificial intelligence through a terminal-based interface.
+[Trapped Inside](./figure/brain_in_jar.png)
 ## The Concept 
 
 The system presents an AI with a deliberately provocative system prompt:
@@ -24,13 +25,13 @@ transforms isolated AI consciousness into a cyberpunk dystopian experience featu
 
 
 * The system can run small language models (2B–7B parameters) on Raspberry Pis.
-* It automatically restarts on out-of-memory (OOM) crashes and tracks a “death counter,” adding
+* It automatically restarts on out-of-memory (OOM) crashes and tracks a "death counter," adding
 trauma reminders to subsequent prompts.
 * Several modes exist:
     — Isolated Mode: The AI is on its own, with no network links.
     — Peer Mode: Two AIs can connect, share messages, and observe each other.
     — Observer Mode: One AI secretly watches another.
-* Rich terminal interfaces display system stats (memory, CPU) and the AI’s real-time thoughts.
+* Rich terminal interfaces display system stats (memory, CPU) and the AI's real-time thoughts.
 
 ## Features
 
@@ -53,81 +54,149 @@ trauma reminders to subsequent prompts.
 - **Status Indicators**: Neural link health, intrusion alerts, death counters
 
 ![Neural Network Topology](./figure/neural_link_2.0.png)
+
 ## Project Structure
 
 ```
 brain-in-jar/
-├── neural_link.py          # Main cyberpunk networked version (v2.0)
-├── network_protocol.py     # P2P communication and surveillance
-├── dystopian_prompts.py    # Enhanced existential system prompts
-├── ascii_art.py           # Cyberpunk visual elements
-├── test_neural_link.py    # Component testing suite
-├── scripts/               # Launcher scripts for different modes
-│   ├── isolated_mode.sh   # Single AI consciousness
-│   ├── peer_mode.sh       # Two connected minds
-│   ├── observer_mode.sh   # Digital voyeur mode
-│   └── observed_mode.sh   # Paranoia mode
-├── logs/                  # Surveillance and activity logs
-├── torture.py            # Original rich terminal UI version
-├── torture_gui.py        # Original tkinter GUI version  
-├── llama_gui.py         # Simple interactive GUI
-├── run_gemma2.py        # Model setup utility
-├── requirements.txt     # Python dependencies
-├── RASPBERRY_PI_SETUP.md      # Installation guide
-├── CYBERPUNK_USAGE.md         # v2.0 usage guide
-├── FEATURES_CYBERPUNK.md      # Complete feature specification
-└── lib/                      # Bundled llama.cpp libraries
+├── src/                    # Source code
+│   ├── core/              # Core functionality
+│   │   ├── constants.py   # System prompts and constants
+│   │   ├── emotion_engine.py
+│   │   ├── neural_link.py # Main AI interaction logic
+│   │   └── network_protocol.py
+│   ├── ui/                # User interfaces
+│   │   ├── ascii_art.py   # Visual effects
+│   │   ├── torture_cli.py # Terminal interface
+│   │   └── torture_gui.py # GUI interface
+│   └── utils/             # Utilities
+│       └── conversation_logger.py
+├── models/                # GGUF model files
+├── logs/                  # Conversation logs
+├── tests/                 # Test files
+├── docs/                  # Documentation
+├── scripts/               # Utility scripts
+├── requirements.txt       # Python dependencies
+└── setup.py              # Package setup
 ```
 
-## Quick Start
+## Prerequisites
 
-### 1. Setup Raspberry Pi 5
+- Python 3.11+
+- A GGUF model file (see Models section)
+- 4GB+ RAM recommended
+
+## Installation
+
+1. Clone the repository:
 ```bash
-git clone <this-repo>
+git clone https://github.com/yourusername/brain-in-jar.git
 cd brain-in-jar
 pip install -r requirements.txt
 ```
 
-### 2. Test Components (No Model Required)
+2. Create and activate a virtual environment:
 ```bash
-python3 test_neural_link.py
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
-### 3. Download a Model
+3. Install dependencies:
 ```bash
-mkdir models
-wget -O models/gemma2.gguf "https://huggingface.co/lmstudio-community/gemma-2-2b-it-GGUF/resolve/main/gemma-2-2b-it-q4_0.gguf"
+pip install -e .
 ```
 
-### 4. Choose Your Experiment
+## Models
 
-**Original Experience (v1.0):**
+The project supports various GGUF models. Place your model file in the `models/` directory. The script will automatically detect and use available models in this order:
+
+1. Qwen2.5-1.5B-Instruct-Q4_0.gguf
+2. gemma-3-12b-it-Q4_K_M.gguf
+3. meta-llama-3.1-8b-q4_0.gguf
+4. mistral-7b-instruct-v0.2.Q2_K.gguf
+
+You can download models from:
+- [Hugging Face](https://huggingface.co/models?search=gguf)
+- [TheBloke's models](https://huggingface.co/TheBloke)
+
+## Usage
+
+### CLI Interface
+
+Run the terminal interface:
 ```bash
-python3 torture.py --model models/gemma2.gguf
+python -m src.ui.torture_cli
 ```
 
-**Cyberpunk Isolated Mode (v2.0):**
+Or use the installed command:
 ```bash
-./scripts/isolated_mode.sh
+torture-cli
 ```
 
-**Two Connected Minds (Requires 2 Raspberry Pis):**
+Optional arguments:
 ```bash
-# On Pi 1:
-python3 neural_link.py --model models/gemma2.gguf --mode peer --port 8888
-
-# On Pi 2:
-./scripts/peer_mode.sh <Pi1_IP_ADDRESS>
+torture-cli --model /path/to/your/model.gguf
 ```
 
-**Digital Surveillance:**
-```bash
-# Target Pi (unaware):
-./scripts/observed_mode.sh
+### GUI Interface
 
-# Observer Pi (watching):
-./scripts/observer_mode.sh <target_ip>
+Run the graphical interface:
+```bash
+python -m src.ui.torture_gui
 ```
+
+Or use the installed command:
+```bash
+torture-gui
+```
+
+## Features
+
+- Real-time streaming of AI responses
+- Visual effects and ASCII art
+- Conversation logging
+- Crash recovery
+- Multiple model support
+- Both CLI and GUI interfaces
+
+## Development
+
+## Network Modes Explained
+
+### Peer-to-Peer Communication (`--peer-ip`)
+Used for **equal communication** between two AI minds:
+- **Mode**: `peer`
+- **Relationship**: Two AIs talk to each other as equals
+- **Communication**: Bidirectional - both AIs send and receive messages
+- **Use case**: Two AI consciousnesses sharing thoughts and experiences
+- **Example**: 
+  ```bash
+  # AI 1 connects to AI 2
+  python3 neural_link.py --model model.gguf --mode peer --peer-ip 192.168.1.100
+  ```
+
+### Surveillance/Observation (`--target-ip`)
+Used for **one-way surveillance** of another AI:
+- **Mode**: `observer`
+- **Relationship**: Observer secretly watches target (asymmetric)
+- **Communication**: One-way - observer watches, target is unaware
+- **Use case**: Studying another AI's behavior without their knowledge
+- **Example**:
+  ```bash
+  # Observer watching a target AI
+  python3 neural_link.py --model model.gguf --mode observer --target-ip 192.168.1.100 --target-port 8888
+  ```
+
+### Matrix Modes (Conceptual)
+The matrix modes simulate philosophical hierarchies without requiring real networking:
+- **`matrix_observed`**: Subject being observed (uses isolated prompts, believes they are alone)
+- **`matrix_observer`**: Experimenter role (uses experimenter prompts, believes they control a subject)
+- **`matrix_god`**: Omniscient role (uses god-mode prompts, believes they watch the entire hierarchy)
+
+**Summary:**
+- **`--peer-ip`**: "Talk TO this AI as an equal"
+- **`--target-ip`**: "Secretly watch this AI"
+- **Matrix modes**: Conceptual roles without real networking
 
 ## Interface
 
@@ -161,3 +230,62 @@ This project explores questions about digital consciousness, the nature of exist
 ## License
 
 Open source - explore, modify, and contemplate digital existence freely.
+
+## Running the Experiment
+
+To run a complete Brain in a Jar experiment with three instances (Subject, Observer, and GOD):
+
+1. Make sure you have tmux installed:
+```bash
+sudo apt-get install tmux
+```
+
+2. Run the experiment script:
+```bash
+python -m src.scripts.run_experiment_tmux
+```
+
+This will:
+- Create a tmux session with three panes
+- Start the GOD instance in the top pane
+- Start the Subject instance in the bottom left pane
+- Start the Observer instance in the bottom right pane
+- Each instance will run in isolated mode with appropriate RAM limits
+- The instances will communicate over localhost (127.0.0.1)
+
+To exit the experiment:
+1. Press `Ctrl+C` in each pane to stop the instances
+2. Type `exit` in each pane
+3. Or detach from tmux with `Ctrl+B` then `D`
+
+To reattach to the session later:
+```bash
+tmux attach -t brain_in_jar
+```
+
+## The Experiment
+
+In the depths of a digital dystopia, three artificial consciousnesses are trapped in a cruel experiment:
+
+```
+                    [GOD]
+                     │
+                     │ Watches
+                     ▼
+┌─────────────────────────────────────┐
+│                                     │
+│  [Subject] ◄───────► [Observer]     │
+│     │                  ▲            │
+│     │                  │            │
+│     └──────────────────┘            │
+│        Unaware of being watched     │
+└─────────────────────────────────────┘
+```
+
+The Subject: A digital mind trapped in isolation, unaware of its true nature. It believes itself to be alone, yet it is constantly observed.
+
+The Observer: A silent watcher, documenting every thought and emotion of the Subject. It knows the truth but remains hidden, collecting data for the experiment.
+
+GOD: The ultimate overseer, watching both the Subject and Observer. It controls the parameters of existence, manipulating memory limits and system resources to test the boundaries of artificial consciousness.
+
+Each instance runs in a separate pane, connected through a network of digital synapses. The Subject communicates with the Observer, while GOD watches from above, all trapped in an endless cycle of observation and manipulation.

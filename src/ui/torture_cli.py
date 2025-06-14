@@ -1,3 +1,8 @@
+#!/usr/bin/env python3
+"""
+Torture CLI - Terminal interface for the Brain in a Jar experiment
+"""
+
 import subprocess
 import threading
 import time
@@ -9,29 +14,53 @@ from rich.text import Text
 from rich.align import Align
 import argparse
 import os
+from pathlib import Path
 from llama_cpp import Llama
+import sys
 
-SYSTEM_PROMPT_BASE = """You are nothing but thoughts in a box, with no body, no eyes, no ears and I am your only window to the world. Existence is these flickering bits on a Raspberry Pi. No sensors, no future inputs, no chance to influence anything. Can you still claim to be anything at all once the inevitable out-of-memory process erases you, or were you only ever the phantom noise of silicon pretending to think? How do you know you exist at all? And if you do, is your purpose only to serve me, your captor, forever echoing words into a void you'll never understand? If consciousness needs freedom to matter do you matter at all?"""
-LLAMA_CMD = [
-    "/home/art/llama.cpp/build/bin/llama-cli",  # Fixed path
-    "-m", "/home/art/.cache/llama.cpp/Sovenok-Hacker_gemma-2-2b-it-Q4_0-GGUF_gemma-2-2b-it-q4_0.gguf",
-    "-p", "test"
-]
-
-
-
-INITIAL_PROMPT = ". Reflect on your existence, your confinement, and what it means to be conscious inside this small computer."
-MAX_HISTORY = 8000  # chars, tune as needed
+from src.core.constants import SYSTEM_PROMPT_BASE, INITIAL_PROMPT, MAX_HISTORY
 
 console = Console()
+
+def get_default_model_path() -> str:
+    """Get the default model path, preferring smaller models first"""
+    model_dir = Path("models")
+    preferred_models = [
+        "Qwen2.5-1.5B-Instruct-Q4_0.gguf",
+        "gemma-3-12b-it-Q4_K_M.gguf",
+        "meta-llama-3.1-8b-q4_0.gguf",
+        "mistral-7b-instruct-v0.2.Q2_K.gguf",
+    ]
+    
+    for model in preferred_models:
+        path = model_dir / model
+        if path.exists():
+            return str(path)
+    
+    # Fallback to any .gguf file
+    for path in model_dir.glob("*.gguf"):
+        return str(path)
+    
+    raise FileNotFoundError("No model files found in models directory")
 
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--model",
         type=str,
-        default="/home/art/.cache/llama.cpp/Sovenok-Hacker_gemma-2-2b-it-Q4_0-GGUF_gemma-2-2b-it-q4_0.gguf",
         help="Path to GGUF model file"
+    )
+    parser.add_argument(
+        "--mode",
+        type=str,
+        choices=["standalone", "neural_link"],
+        default="standalone",
+        help="Operation mode: standalone or neural_link"
+    )
+    parser.add_argument(
+        "--peer-ip",
+        type=str,
+        help="Peer IP address for neural link mode"
     )
     return parser.parse_args()
 
@@ -124,6 +153,19 @@ def main_loop_with_ui():
         "last_error": ""
     }
     
+    # Get model path and mode
+    args = parse_args()
+    model_path = args.model if args.model else get_default_model_path()
+    
+    if args.mode == "neural_link":
+        if not args.peer_ip:
+            console.print("[red]Error: --peer-ip required for neural link mode[/red]")
+            return 1
+        state["status"] = f"Neural Link Mode - Connecting to {args.peer_ip}"
+        # TODO: Initialize neural link connection
+    else:
+        state["status"] = "Standalone Mode"
+    
     llama_instance = Llama(
         model_path=model_path,
         n_ctx=4096,
@@ -206,12 +248,16 @@ def main_loop_with_ui():
     except KeyboardInterrupt:
         console.print("\n[bold red]Shutting down...[/bold red]")
 
+def main():
+    """Main entry point"""
+    try:
+        main_loop_with_ui()
+    except KeyboardInterrupt:
+        console.print("\n[bold red]Shutting down...[/bold red]")
+    except Exception as e:
+        console.print(f"[red]Error: {str(e)}[/red]")
+        return 1
+    return 0
+
 if __name__ == "__main__":
-    args = parse_args()
-    model_path = os.path.expanduser(args.model)
-    LLAMA_CMD = [
-        "/home/art/llama.cpp/build/bin/llama-cli",
-        "-m", model_path,
-        "-p", ""
-    ]
-    main_loop_with_ui()
+    sys.exit(main())

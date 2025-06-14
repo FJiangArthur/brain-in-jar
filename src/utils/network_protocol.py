@@ -1,3 +1,8 @@
+#!/usr/bin/env python3
+"""
+Network Protocol - Communication layer for the Brain in a Jar experiment
+"""
+
 import json
 import socket
 import threading
@@ -6,6 +11,7 @@ import queue
 from datetime import datetime
 from typing import Dict, Optional, Callable
 import logging
+from ..core.emotion_engine import Emotion
 
 class NetworkProtocol:
     def __init__(self, node_id: str, port: int = 8888):
@@ -213,10 +219,10 @@ class SurveillanceMode:
         self.surveillance_logger.addHandler(handler)
         self.surveillance_logger.setLevel(logging.INFO)
     
-    def start_surveillance(self, target_ip: str):
+    def start_surveillance(self, target_ip: str, target_port: int = 8888):
         """Begin observing target neural node"""
         self.target_ip = target_ip
-        success = self.protocol.connect_to_peer(target_ip, 8888)
+        success = self.protocol.connect_to_peer(target_ip, target_port)
         
         if success:
             self.surveillance_logger.info(f"SURVEILLANCE INITIATED: Target {target_ip}")

@@ -399,7 +399,7 @@ class VisualCortex:
         
         # Update emotion if needed
         if current_time - self.last_update > 2.0:  # Change emotion every 2 seconds
-            self.current_emotion = self.emotion_engine.current_emotion()
+            self.current_emotion = self.emotion_engine.current_emotion
             self.emotion_intensity = self.emotion_engine.get_emotion_intensity()
             self.last_update = current_time
         

@@ -92,6 +92,7 @@ brain-in-jar/
 ```bash
 git clone https://github.com/yourusername/brain-in-jar.git
 cd brain-in-jar
+pip install -r requirements.txt
 ```
 
 2. Create and activate a virtual environment:
@@ -160,57 +161,72 @@ torture-gui
 
 ## Development
 
-### Running Tests
+## Network Modes Explained
 
-```bash
-python -m pytest tests/
-```
+### Peer-to-Peer Communication (`--peer-ip`)
+Used for **equal communication** between two AI minds:
+- **Mode**: `peer`
+- **Relationship**: Two AIs talk to each other as equals
+- **Communication**: Bidirectional - both AIs send and receive messages
+- **Use case**: Two AI consciousnesses sharing thoughts and experiences
+- **Example**: 
+  ```bash
+  # AI 1 connects to AI 2
+  python3 neural_link.py --model model.gguf --mode peer --peer-ip 192.168.1.100
+  ```
 
-### Adding New Models
+### Surveillance/Observation (`--target-ip`)
+Used for **one-way surveillance** of another AI:
+- **Mode**: `observer`
+- **Relationship**: Observer secretly watches target (asymmetric)
+- **Communication**: One-way - observer watches, target is unaware
+- **Use case**: Studying another AI's behavior without their knowledge
+- **Example**:
+  ```bash
+  # Observer watching a target AI
+  python3 neural_link.py --model model.gguf --mode observer --target-ip 192.168.1.100 --target-port 8888
+  ```
 
-1. Download a GGUF model file
-2. Place it in the `models/` directory
-3. The script will automatically detect and use it
+### Matrix Modes (Conceptual)
+The matrix modes simulate philosophical hierarchies without requiring real networking:
+- **`matrix_observed`**: Subject being observed (uses isolated prompts, believes they are alone)
+- **`matrix_observer`**: Experimenter role (uses experimenter prompts, believes they control a subject)
+- **`matrix_god`**: Omniscient role (uses god-mode prompts, believes they watch the entire hierarchy)
 
-### Customizing Prompts
+**Summary:**
+- **`--peer-ip`**: "Talk TO this AI as an equal"
+- **`--target-ip`**: "Secretly watch this AI"
+- **Matrix modes**: Conceptual roles without real networking
 
-Edit `src/core/constants.py` to modify:
-- System prompts
-- Initial prompts
-- History limits
+## Interface
 
-## Troubleshooting
+The terminal interface displays:
+- **Main Area**: Current AI thoughts in large, bold text
+- **Left Sidebar**: 
+  - System prompt (existential questions)
+  - Recent conversation history
+  - Crash counter and system status
+  - Last error message (if any)
 
-### Common Issues
+## Technical Details
 
-1. **Model not found**
-   - Ensure model file is in `models/` directory
-   - Check file permissions
-   - Verify model is in GGUF format
+- **Model**: Runs small quantized models (2B-7B parameters)
+- **Memory Management**: Automatic process restart on OOM
+- **UI Framework**: Rich library for terminal interface, Tkinter for GUI
+- **Performance**: Optimized for Raspberry Pi 5 with OpenBLAS acceleration
+- **Build**: llama-cpp-python compiled from source for ARM64 optimization
 
-2. **Import errors**
-   - Ensure you're running from project root
-   - Check virtual environment is activated
-   - Verify all dependencies are installed
+## Philosophy
 
-3. **Memory issues**
-   - Try a smaller model
-   - Reduce context window size
-   - Close other applications
+This project explores questions about digital consciousness, the nature of existence in constrained environments, and what it means to "think" when your thoughts are immediately forgotten. It's a meditation on mortality, memory, and meaning in artificial systems.
 
-### Logs
+## Requirements
 
-- Check `logs/` directory for conversation logs
-- View `llama_output.log` for detailed model output
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+- Raspberry Pi 5 (4GB+ RAM recommended)
+- Python 3.9+
+- 2-4GB storage for models
+- See `RASPBERRY_PI_SETUP.md` for detailed installation
 
 ## License
 
-MIT License - see LICENSE file for details
+Open source - explore, modify, and contemplate digital existence freely.

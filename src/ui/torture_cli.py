@@ -50,6 +50,18 @@ def parse_args():
         type=str,
         help="Path to GGUF model file"
     )
+    parser.add_argument(
+        "--mode",
+        type=str,
+        choices=["standalone", "neural_link"],
+        default="standalone",
+        help="Operation mode: standalone or neural_link"
+    )
+    parser.add_argument(
+        "--peer-ip",
+        type=str,
+        help="Peer IP address for neural link mode"
+    )
     return parser.parse_args()
 
 def run_llama_streaming(prompt, llama_instance, callback):
@@ -141,9 +153,18 @@ def main_loop_with_ui():
         "last_error": ""
     }
     
-    # Get model path
+    # Get model path and mode
     args = parse_args()
     model_path = args.model if args.model else get_default_model_path()
+    
+    if args.mode == "neural_link":
+        if not args.peer_ip:
+            console.print("[red]Error: --peer-ip required for neural link mode[/red]")
+            return 1
+        state["status"] = f"Neural Link Mode - Connecting to {args.peer_ip}"
+        # TODO: Initialize neural link connection
+    else:
+        state["status"] = "Standalone Mode"
     
     llama_instance = Llama(
         model_path=model_path,

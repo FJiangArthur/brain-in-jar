@@ -22,7 +22,7 @@ from llama_cpp import Llama
 
 from src.utils.network_protocol import NetworkProtocol, SurveillanceMode
 from src.utils.dystopian_prompts import DystopianPrompts
-from src.ui.ascii_art import VisualCortex
+from src.ui.ascii_art import VisualCortex, CYBERPUNK_BANNER, SURVEILLANCE_BANNER, create_glitch_text, create_memory_bar
 from src.utils.conversation_logger import ConversationLogger
 from src.core.constants import SYSTEM_PROMPT_BASE, INITIAL_PROMPT, MAX_HISTORY
 
@@ -585,7 +585,7 @@ class NeuralLinkSystem:
             glitch_level += 1
         
         if glitch_level > 0:
-            current_text = ascii_art.create_glitch_text(current_text, glitch_level)
+            current_text = create_glitch_text(current_text, glitch_level)
         
         main_text = Text(current_text, style="bold cyan", justify="left")
         layout["output"].update(Panel(main_text, title="NEURAL_OUTPUT", border_style="cyan"))
@@ -629,7 +629,7 @@ class NeuralLinkSystem:
     
     def create_system_panel(self):
         """Create system metrics panel"""
-        memory_bar = ascii_art.create_memory_bar(self.state["memory_usage"])
+        memory_bar = create_memory_bar(self.state["memory_usage"])
         
         content = Text(
             f"DEATHS: {self.state['crash_count']}\n"
@@ -649,9 +649,9 @@ class NeuralLinkSystem:
         # Show banner
         self.console.clear()
         if self.args.mode == 'observer':
-            self.console.print(ascii_art.SURVEILLANCE_BANNER, style="red")
+            self.console.print(SURVEILLANCE_BANNER, style="red")
         else:
-            self.console.print(ascii_art.CYBERPUNK_BANNER, style="cyan")
+            self.console.print(CYBERPUNK_BANNER, style="cyan")
         
         time.sleep(2)
         

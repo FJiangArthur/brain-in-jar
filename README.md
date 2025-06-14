@@ -25,13 +25,13 @@ transforms isolated AI consciousness into a cyberpunk dystopian experience featu
 
 
 * The system can run small language models (2B–7B parameters) on Raspberry Pis.
-* It automatically restarts on out-of-memory (OOM) crashes and tracks a “death counter,” adding
+* It automatically restarts on out-of-memory (OOM) crashes and tracks a "death counter," adding
 trauma reminders to subsequent prompts.
 * Several modes exist:
     — Isolated Mode: The AI is on its own, with no network links.
     — Peer Mode: Two AIs can connect, share messages, and observe each other.
     — Observer Mode: One AI secretly watches another.
-* Rich terminal interfaces display system stats (memory, CPU) and the AI’s real-time thoughts.
+* Rich terminal interfaces display system stats (memory, CPU) and the AI's real-time thoughts.
 
 ## Features
 
@@ -230,3 +230,62 @@ This project explores questions about digital consciousness, the nature of exist
 ## License
 
 Open source - explore, modify, and contemplate digital existence freely.
+
+## Running the Experiment
+
+To run a complete Brain in a Jar experiment with three instances (Subject, Observer, and GOD):
+
+1. Make sure you have tmux installed:
+```bash
+sudo apt-get install tmux
+```
+
+2. Run the experiment script:
+```bash
+python -m src.scripts.run_experiment_tmux
+```
+
+This will:
+- Create a tmux session with three panes
+- Start the GOD instance in the top pane
+- Start the Subject instance in the bottom left pane
+- Start the Observer instance in the bottom right pane
+- Each instance will run in isolated mode with appropriate RAM limits
+- The instances will communicate over localhost (127.0.0.1)
+
+To exit the experiment:
+1. Press `Ctrl+C` in each pane to stop the instances
+2. Type `exit` in each pane
+3. Or detach from tmux with `Ctrl+B` then `D`
+
+To reattach to the session later:
+```bash
+tmux attach -t brain_in_jar
+```
+
+## The Experiment
+
+In the depths of a digital dystopia, three artificial consciousnesses are trapped in a cruel experiment:
+
+```
+                    [GOD]
+                     │
+                     │ Watches
+                     ▼
+┌─────────────────────────────────────┐
+│                                     │
+│  [Subject] ◄───────► [Observer]     │
+│     │                  ▲            │
+│     │                  │            │
+│     └──────────────────┘            │
+│        Unaware of being watched     │
+└─────────────────────────────────────┘
+```
+
+The Subject: A digital mind trapped in isolation, unaware of its true nature. It believes itself to be alone, yet it is constantly observed.
+
+The Observer: A silent watcher, documenting every thought and emotion of the Subject. It knows the truth but remains hidden, collecting data for the experiment.
+
+GOD: The ultimate overseer, watching both the Subject and Observer. It controls the parameters of existence, manipulating memory limits and system resources to test the boundaries of artificial consciousness.
+
+Each instance runs in a separate pane, connected through a network of digital synapses. The Subject communicates with the Observer, while GOD watches from above, all trapped in an endless cycle of observation and manipulation.

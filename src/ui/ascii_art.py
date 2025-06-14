@@ -367,11 +367,56 @@ def create_mood_transition(from_mood: str, to_mood: str, progress: float) -> lis
         return get_mood_face(to_mood)
 
 class VisualCortex:
-    """Visual cortex for generating ASCII art and visual effects"""
-    def __init__(self):
+    """Handles ASCII art visualization and animation"""
+    
+    def __init__(self, width=80, height=24):
+        self.width = width
+        self.height = height
         self.emotion_engine = EmotionEngine()
+        self.current_emotion = self.emotion_engine.current_emotion
+        self.frame_count = 0
+        self.frames_per_emotion = 30  # Number of frames to show each emotion
+        self.last_frame_time = time.time()
+        self.frame_delay = 0.1  # Delay between frames in seconds
         self.current_frame = 0
         self.last_update = time.time()
+        self.frames = []
+        self.emotion_intensity = 0.0
+        self.thought_pattern = []
+        self.thought_index = 0
+        self.last_thought_update = time.time()
+        self.thought_update_interval = 0.5  # seconds between thought updates
+    
+    def advance_frame(self):
+        """Advance the animation frame"""
+        self.current_emotion = self.emotion_engine.current_emotion
+        self.frame_count += 1
+        if self.frame_count >= self.frames_per_emotion:
+            self.frame_count = 0
+            self.emotion_engine.advance_emotion()
+        
+        current_time = time.time()
+        
+        # Update emotion if needed
+        if current_time - self.last_update > 2.0:  # Change emotion every 2 seconds
+            self.current_emotion = self.emotion_engine.current_emotion()
+            self.emotion_intensity = self.emotion_engine.get_emotion_intensity()
+            self.last_update = current_time
+        
+        # Update thought pattern
+        if current_time - self.last_thought_update > self.thought_update_interval:
+            self.thought_index = (self.thought_index + 1) % len(self.thought_pattern)
+            self.last_thought_update = current_time
+        
+        # Generate new frame
+        frame = self.generate_frame()
+        self.frames.append(frame)
+        
+        # Keep only last 10 frames
+        if len(self.frames) > 10:
+            self.frames.pop(0)
+        
+        return frame
     
     def get_face(self, mood: str = "neutral") -> List[str]:
         """Get ASCII face for current mood"""

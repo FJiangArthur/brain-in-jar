@@ -13,7 +13,7 @@ def run_tmux_session():
     models_dir = Path("models")
     subject_model = models_dir / "Qwen2.5-1.5B-Instruct-Q4_0.gguf"
     observer_model = models_dir / "Qwen2.5-1.5B-Instruct-Q4_0.gguf"
-    god_model = models_dir / "meta-llama-3.1-8b-q4_0.gguf"
+    god_model = models_dir / "Qwen2.5-1.5B-Instruct-Q4_0.gguf" # "meta-llama-3.1-8b-q4_0.gguf"
 
     if not all(model.exists() for model in [subject_model, observer_model, god_model]):
         print("[red]Error: One or more model files not found[/red]")

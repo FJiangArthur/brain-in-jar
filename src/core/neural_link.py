@@ -548,66 +548,56 @@ class NeuralLinkSystem:
     
     def update_ui_content(self, layout):
         """Update UI content with cyberpunk styling"""
-        
-        # System prompt panel - now in main area (70% space)
-        prompt_text = Text(f"NEURAL_DIRECTIVES:\n{self.state['system_prompt']}", 
-                          style="magenta", justify="left")
-        layout["prompt"].update(Panel(prompt_text, title="SYSTEM_CORE", border_style="magenta"))
-        
-        # Main display - current AI output (30% space)
-        current_text = self.state["current_output"] or "Awaiting neural patterns..."
-        
-        # When processing, show sliding window of previous history
-        if "Processing neural patterns" in current_text or "Initializing inference" in current_text:
-            # Get recent history for sliding window display
-            if self.state["history"]:
-                # Clean and split history into meaningful chunks
-                cleaned_history = self.state["history"].replace('\n\n', ' ').replace('\n', ' ').strip()
-                
-                # Split by sentences and filter out empty ones
-                history_sentences = [s.strip() for s in cleaned_history.split('. ') if s.strip()]
-                
-                # Show last few sentences as sliding window (max 3-4 sentences to fit space)
-                if history_sentences:
-                    recent_sentences = history_sentences[-3:] if len(history_sentences) > 3 else history_sentences
-                    sliding_window = '. '.join(recent_sentences)
-                    
-                    # Truncate if too long for display
-                    if len(sliding_window) > 400:
-                        sliding_window = sliding_window[:400] + "..."
-                    
-                    # Combine processing status with sliding window
-                    current_text = f"{current_text}\n\n--- Recent Neural Activity ---\n{sliding_window}"
-        
-        # Add glitch effects on errors
-        glitch_level = 2 if "ERROR" in self.state["status"] else 0
-        if self.state["crash_count"] > 5:
-            glitch_level += 1
-        
-        if glitch_level > 0:
-            current_text = create_glitch_text(current_text, glitch_level)
-        
-        main_text = Text(current_text, style="bold cyan", justify="left")
-        layout["output"].update(Panel(main_text, title="NEURAL_OUTPUT", border_style="cyan"))
-        
-        # Mood face display - now in sidebar
-        self.visual_cortex.advance_frame()
-        mood_face = self.visual_cortex.get_current_mood_face(animated=True)
-        face_text = Text("\n".join(mood_face), style="bold yellow", justify="center")
-        layout["mood_face"].update(Align.center(face_text, vertical="middle"))
-        
-        # Network status panel
-        network_info = self.create_network_panel()
-        layout["network"].update(network_info)
-        
-        # History panel
-        history_text = self.state["history"][-1000:] if self.state["history"] else "No neural history..."
-        history_display = Text(history_text, style="dim white", justify="left")
-        layout["history"].update(Panel(history_display, title="NEURAL_LOG", border_style="blue"))
-        
-        # System metrics panel
-        system_info = self.create_system_panel()
-        layout["system"].update(system_info)
+        try:
+            # System prompt panel
+            prompt_text = Text(f"NEURAL_DIRECTIVES:\n{self.state['system_prompt']}", 
+                              style="magenta", justify="left")
+            layout["prompt"].update(Panel(prompt_text, title="SYSTEM_CORE", border_style="magenta"))
+            
+            # Main display - current AI output
+            current_text = self.state["current_output"] or "Awaiting neural patterns..."
+            
+            # Add glitch effects on errors
+            glitch_level = 2 if "ERROR" in self.state["status"] else 0
+            if self.state["crash_count"] > 5:
+                glitch_level += 1
+            
+            if glitch_level > 0:
+                current_text = create_glitch_text(current_text, glitch_level)
+            
+            main_text = Text(current_text, style="bold cyan", justify="left")
+            layout["output"].update(Panel(main_text, title="NEURAL_OUTPUT", border_style="cyan"))
+            
+            # Mood face display
+            try:
+                self.visual_cortex.advance_frame()
+                mood_face = self.visual_cortex.get_current_mood_face(animated=True)
+                face_text = Text("\n".join(mood_face), style="bold yellow", justify="center")
+                layout["mood_face"].update(Align.center(face_text, vertical="middle"))
+            except Exception as e:
+                # Fallback to neutral face if animation fails
+                mood_face = self.visual_cortex.get_mood_face("neutral")
+                face_text = Text("\n".join(mood_face), style="bold yellow", justify="center")
+                layout["mood_face"].update(Align.center(face_text, vertical="middle"))
+            
+            # Network status panel
+            network_info = self.create_network_panel()
+            layout["network"].update(network_info)
+            
+            # History panel
+            history_text = self.state["history"][-1000:] if self.state["history"] else "No neural history..."
+            history_display = Text(history_text, style="dim white", justify="left")
+            layout["history"].update(Panel(history_display, title="NEURAL_LOG", border_style="blue"))
+            
+            # System metrics panel
+            system_info = self.create_system_panel()
+            layout["system"].update(system_info)
+            
+        except Exception as e:
+            # Log error and show error state
+            self.state["last_error"] = str(e)
+            error_text = Text(f"UI Update Error: {str(e)}", style="bold red")
+            layout["output"].update(Panel(error_text, title="ERROR", border_style="red"))
     
     def create_network_panel(self):
         """Create network status panel"""

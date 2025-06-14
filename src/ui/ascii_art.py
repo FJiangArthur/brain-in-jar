@@ -375,18 +375,79 @@ class VisualCortex:
         self.emotion_engine = EmotionEngine()
         self.current_emotion = self.emotion_engine.current_emotion
         self.frame_count = 0
-        self.frames_per_emotion = 30  # Number of frames to show each emotion
+        self.frames_per_emotion = 30
         self.last_frame_time = time.time()
-        self.frame_delay = 0.1  # Delay between frames in seconds
+        self.frame_delay = 0.1
         self.current_frame = 0
         self.last_update = time.time()
         self.frames = []
         self.emotion_intensity = 0.0
-        self.thought_pattern = []
+        self.thought_pattern = ["*", "**", "***", "**", "*"]
         self.thought_index = 0
         self.last_thought_update = time.time()
-        self.thought_update_interval = 0.5  # seconds between thought updates
+        self.thought_update_interval = 0.5
+        self.mood_history = []  # Add this to track mood history
     
+    def generate_frame(self) -> List[str]:
+        """Generate a new animation frame"""
+        # Get current mood face
+        current_face = self.get_animated_face(self.current_emotion.name.lower())
+        
+        # Add thought pattern
+        thought = self.thought_pattern[self.thought_index]
+        
+        # Combine face and thought pattern
+        frame = current_face.copy()
+        frame.append(f"   {thought}")
+        
+        return frame
+
+    def get_current_mood_face(self, animated: bool = False) -> List[str]:
+        """Get current mood face with optional animation"""
+        if animated:
+            return self.get_animated_face(self.current_emotion.name.lower())
+        return self.get_mood_face(self.current_emotion.name.lower())
+
+    def analyze_text_for_mood(self, text: str, context: Dict) -> str:
+        """Analyze text to determine mood"""
+        # Simple mood analysis based on keywords
+        text = text.lower()
+        
+        # Check for crash-related keywords
+        if context.get('crash_count', 0) > 0:
+            return "glitched"
+            
+        # Check for memory pressure
+        if context.get('memory_usage', 0) > 90:
+            return "anxious"
+            
+        # Check for network issues
+        if "UNSTABLE" in context.get('network_status', ''):
+            return "confused"
+            
+        # Basic sentiment analysis
+        if any(word in text for word in ['happy', 'joy', 'excited', 'wonderful']):
+            return "happy"
+        elif any(word in text for word in ['sad', 'depressed', 'miserable']):
+            return "sad"
+        elif any(word in text for word in ['angry', 'furious', 'hate']):
+            return "angry"
+        elif any(word in text for word in ['think', 'ponder', 'consider']):
+            return "contemplative"
+        elif any(word in text for word in ['hope', 'wish', 'dream']):
+            return "hopeful"
+        elif any(word in text for word in ['wonder', 'curious', 'question']):
+            return "curious"
+        elif any(word in text for word in ['peace', 'calm', 'tranquil']):
+            return "peaceful"
+            
+        return "neutral"
+
+    def get_mood_context_for_llm(self) -> str:
+        """Get mood context for LLM prompts"""
+        current_mood = self.current_emotion.name.lower()
+        return f"[CURRENT_MOOD: {current_mood}]"
+
     def advance_frame(self):
         """Advance the animation frame"""
         self.current_emotion = self.emotion_engine.current_emotion
@@ -396,15 +457,15 @@ class VisualCortex:
             self.emotion_engine.advance_emotion()
         
         current_time = time.time()
-        
-        # Update emotion if needed
         if current_time - self.last_update > 2.0:  # Change emotion every 2 seconds
             self.current_emotion = self.emotion_engine.current_emotion
             self.emotion_intensity = self.emotion_engine.get_emotion_intensity()
             self.last_update = current_time
         
-        # Update thought pattern
-        if current_time - self.last_thought_update > self.thought_update_interval:
+        # Update thought pattern if needed
+        if current_time - self.last_thought_update > 0.5:  # Update thoughts every 0.5 seconds
+            if not self.thought_pattern:  # If thought pattern is empty, use default
+                self.thought_pattern = ["*", "**", "***", "**", "*"]
             self.thought_index = (self.thought_index + 1) % len(self.thought_pattern)
             self.last_thought_update = current_time
         

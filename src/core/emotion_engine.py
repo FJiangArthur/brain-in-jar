@@ -25,6 +25,7 @@ class EmotionEngine:
         self.current_emotion = Emotion.NEUTRAL
         self.emotion_history = []
         self.faces = self._create_faces()
+        self.emotion_intensity = 0.5  # Default intensity
     
     def _create_faces(self) -> Dict[Emotion, List[str]]:
         """Create ASCII art faces for each emotion"""
@@ -204,6 +205,13 @@ class EmotionEngine:
         for emotion in Emotion:
             print(f"\nDemonstrating: {emotion.value}")
             self.display_emotion(emotion, 1.5)
+    
+    def get_emotion_intensity(self) -> float:
+        """Get current emotion intensity (0.0 to 1.0)"""
+        # Randomly vary intensity slightly for more dynamic emotions
+        base_intensity = 0.5
+        variation = random.uniform(-0.2, 0.2)
+        return max(0.0, min(1.0, base_intensity + variation))
 
 if __name__ == "__main__":
     engine = EmotionEngine()

@@ -1,8 +1,16 @@
+#!/usr/bin/env python3
+"""
+Simple Llama GUI - Basic interface for Llama model interaction
+"""
+
 import tkinter as tk
-from tkinter.scrolledtext import ScrolledText
+from tkinter import ttk, scrolledtext
+import threading
 from llama_cpp import Llama
 import argparse
 import os
+
+from ..utils.conversation_logger import ConversationLogger
 
 DEFAULT_MODEL = os.environ.get('DEFAULT_LLAMA_MODEL', './models/gemma2.bin')
 
@@ -32,7 +40,7 @@ class LlamaGUI:
         self.submit_button = tk.Button(self.root, text='Submit', command=self.run_model)
         self.submit_button.pack()
 
-        self.output_text = ScrolledText(self.root, wrap=tk.WORD, width=80, height=20)
+        self.output_text = scrolledtext.ScrolledText(self.root, wrap=tk.WORD, width=80, height=20)
         self.output_text.pack()
 
     def run_model(self):

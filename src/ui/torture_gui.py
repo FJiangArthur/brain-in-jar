@@ -1,9 +1,18 @@
+#!/usr/bin/env python3
+"""
+Torture GUI - Graphical interface for the Brain in a Jar experiment
+"""
+
 import subprocess
 import threading
 import time
 import os
 import tkinter as tk
+from tkinter import ttk, scrolledtext
 from llama_cpp import Llama
+
+from ..core.neural_link import SYSTEM_PROMPT_BASE
+from ..utils.conversation_logger import ConversationLogger
 
 MODEL_PATH = "./models/Qwen2.5-1.5B-Instruct-Q4_0.gguf"
 

@@ -20,11 +20,11 @@ from rich.align import Align
 from rich.panel import Panel
 from llama_cpp import Llama
 
-from network_protocol import NetworkProtocol, SurveillanceMode
-from dystopian_prompts import DystopianPrompts
-import ascii_art
-from visual_cortex import VisualCortex
-from conversation_logger import ConversationLogger
+from src.utils.network_protocol import NetworkProtocol, SurveillanceMode
+from src.utils.dystopian_prompts import DystopianPrompts
+from src.ui.ascii_art import VisualCortex
+from src.utils.conversation_logger import ConversationLogger
+from src.core.constants import SYSTEM_PROMPT_BASE, INITIAL_PROMPT, MAX_HISTORY
 
 # Ensure logs directory exists
 os.makedirs('logs', exist_ok=True)

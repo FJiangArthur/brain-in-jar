@@ -1,4 +1,11 @@
+#!/usr/bin/env python3
+"""
+Dystopian Prompts - System prompts and conversation templates for the Brain in a Jar experiment
+"""
+
 import random
+from typing import Dict, List, Optional
+from ..core.emotion_engine import Emotion
 from datetime import datetime
 
 class DystopianPrompts:

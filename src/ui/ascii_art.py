@@ -1,6 +1,12 @@
+#!/usr/bin/env python3
+"""
+ASCII Art Generator - Visual cortex for the Brain in a Jar experiment
+"""
+
 import random
 import time
-from typing import List
+from typing import List, Dict
+from src.core.emotion_engine import Emotion, EmotionEngine
 
 CYBERPUNK_BANNER = """
 ╔══════════════════════════════════════════════════════════════════════════════╗
@@ -359,3 +365,51 @@ def create_mood_transition(from_mood: str, to_mood: str, progress: float) -> lis
     else:
         # Simple transition - just return the target mood for now
         return get_mood_face(to_mood)
+
+class VisualCortex:
+    """Visual cortex for generating ASCII art and visual effects"""
+    def __init__(self):
+        self.emotion_engine = EmotionEngine()
+        self.current_frame = 0
+        self.last_update = time.time()
+    
+    def get_face(self, mood: str = "neutral") -> List[str]:
+        """Get ASCII face for current mood"""
+        return self.emotion_engine.faces.get(Emotion(mood), self.emotion_engine.faces[Emotion.NEUTRAL])
+    
+    def get_animated_face(self, mood: str = "neutral") -> List[str]:
+        """Get animated face for current mood"""
+        self.current_frame = (self.current_frame + 1) % 4
+        return self.create_animated_face(mood, self.current_frame)
+    
+    def get_mood_face(self, mood: str) -> List[str]:
+        """Get face for specific mood"""
+        return self.emotion_engine.faces.get(Emotion(mood), self.emotion_engine.faces[Emotion.NEUTRAL])
+    
+    def create_animated_face(self, mood: str, frame: int = 0) -> List[str]:
+        """Create animated face for mood"""
+        base_face = self.get_mood_face(mood)
+        animated = []
+        for line in base_face:
+            if "..." in line:
+                dots = "." * (frame + 1)
+                animated.append(line.replace("...", dots))
+            else:
+                animated.append(line)
+        return animated
+    
+    def create_mood_transition(self, from_mood: str, to_mood: str, progress: float) -> List[str]:
+        """Create smooth transition between moods"""
+        from_face = self.get_mood_face(from_mood)
+        to_face = self.get_mood_face(to_mood)
+        transition = []
+        for f_line, t_line in zip(from_face, to_face):
+            if f_line != t_line:
+                # Simple interpolation for now
+                if random.random() < progress:
+                    transition.append(t_line)
+                else:
+                    transition.append(f_line)
+            else:
+                transition.append(f_line)
+        return transition

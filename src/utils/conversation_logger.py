@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """
-Conversation Logger - Records and replays AI conversations for Brain in Jar
+Conversation Logger - Logging and history management for the Brain in a Jar experiment
 """
 
 import sqlite3
 import json
 import os
+import time
 from datetime import datetime
 from typing import Dict, List, Optional, Any
+from ..core.emotion_engine import Emotion
 
 class ConversationLogger:
     """Handles logging and replay of AI conversations"""
@@ -423,7 +425,6 @@ class ConversationReplayer:
                 replay_delay = real_delay / speed_multiplier
                 
                 if replay_delay > 0:
-                    import time
                     time.sleep(min(replay_delay, 5))  # Cap at 5 seconds
                 
                 last_time = event_time

@@ -1,3 +1,8 @@
+#!/usr/bin/env python3
+"""
+Network Protocol - Communication layer for the Brain in a Jar experiment
+"""
+
 import json
 import socket
 import threading
@@ -6,6 +11,7 @@ import queue
 from datetime import datetime
 from typing import Dict, Optional, Callable
 import logging
+from ..core.emotion_engine import Emotion
 
 class NetworkProtocol:
     def __init__(self, node_id: str, port: int = 8888):

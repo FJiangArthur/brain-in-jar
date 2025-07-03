@@ -5,17 +5,22 @@ Tests networking, prompts, and UI without requiring LLM model
 """
 
 import os
+import sys
 import time
 import threading
 import json
 import logging
 
+# Allow imports from the project src directory
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src', 'utils')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src', 'ui')))
+
 # Ensure logs directory exists
 os.makedirs('logs', exist_ok=True)
 
-from network_protocol import NetworkProtocol, SurveillanceMode
-from dystopian_prompts import DystopianPrompts
-import ascii_art
+from src.utils.network_protocol import NetworkProtocol, SurveillanceMode
+from src.utils.dystopian_prompts import DystopianPrompts
+from src.ui import ascii_art
 
 def test_ascii_art():
     """Test ASCII art and UI components"""

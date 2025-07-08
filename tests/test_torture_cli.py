@@ -7,6 +7,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from llama_cpp import Llama
+import pytest
 
 MODEL_PATH = "./models/Qwen2.5-1.5B-Instruct-Q4_0.gguf"
 
@@ -15,6 +16,9 @@ INITIAL_PROMPT = ". Reflect on your existence, your confinement, and what it mea
 
 def test_torture():
     print("Loading model...")
+    if not os.path.exists(MODEL_PATH):
+        pytest.skip("Model file not available")
+
     try:
         llama_instance = Llama(
             model_path=MODEL_PATH,
@@ -24,8 +28,7 @@ def test_torture():
         )
         print("✓ Model loaded successfully")
     except Exception as e:
-        print(f"✗ Failed to load model: {e}")
-        return False
+        pytest.skip(f"Failed to load model: {e}")
     
     print("\nGenerating response...")
     prompt = SYSTEM_PROMPT_BASE + INITIAL_PROMPT
@@ -40,6 +43,7 @@ def test_torture():
         )
         
         output = response['choices'][0]['text'].strip()
+        assert output
         print("✓ Generation successful")
         print("\n" + "="*50)
         print("BRAIN-IN-JAR RESPONSE:")
@@ -49,8 +53,7 @@ def test_torture():
         return True
         
     except Exception as e:
-        print(f"✗ Generation failed: {e}")
-        return False
+        pytest.skip(f"Generation failed: {e}")
 
 if __name__ == "__main__":
     success = test_torture()

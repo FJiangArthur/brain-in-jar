@@ -22,6 +22,7 @@ from llama_cpp import Llama
 
 from src.utils.network_protocol import NetworkProtocol, SurveillanceMode
 from src.utils.dystopian_prompts import DystopianPrompts
+from src.utils.memory_limit import set_memory_limit
 from src.ui.ascii_art import VisualCortex, CYBERPUNK_BANNER, SURVEILLANCE_BANNER, create_glitch_text, create_memory_bar
 from src.utils.conversation_logger import ConversationLogger
 from src.core.constants import SYSTEM_PROMPT_BASE, INITIAL_PROMPT, MAX_HISTORY
@@ -46,6 +47,10 @@ class NeuralLinkSystem:
                 'matrix_observer': int(args.matrix_experimenter_ram * 1024 * 1024 * 1024),
                 'matrix_god': int(args.matrix_god_ram * 1024 * 1024 * 1024),
             }.get(args.mode, None)
+
+        if self.ram_limit:
+            # Apply OS level limit so the process is killed when exceeded
+            set_memory_limit(self.ram_limit / (1024 * 1024 * 1024))
         
         # Create logs directory if it doesn't exist
         os.makedirs('logs/model_io', exist_ok=True)

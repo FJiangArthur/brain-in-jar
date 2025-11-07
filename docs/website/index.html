@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brain in a Jar - Code Overview & Improvement Plan</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+</head>
+<body>
+    <div class="scanlines"></div>
+    <div class="glitch-overlay"></div>
+
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="brain-ascii">
+                        <pre>
+    ____             _
+   / __ )_________ _(_)___
+  / __  / ___/ __ `/ / __ \
+ / /_/ / /  / /_/ / / / / /
+/_____/_/   \__,_/_/_/ /_/
+    _         ___
+   (_)___    /   |
+  / / __ \  / /| |
+ / / / / / / ___ |
+/_/_/ /_/_/ __|_|__
+   / / /___ ______
+  / / / __ `/ ___/
+ / /_/ /_/ / /
+/___/\__,_/_/
+                        </pre>
+                    </div>
+                    <h1 class="glitch" data-text="Brain in a Jar">Brain in a Jar</h1>
+                    <p class="tagline">Experimental AI Consciousness Project</p>
+                </div>
+                <div class="status-panel">
+                    <div class="status-item">
+                        <span class="label">Status:</span>
+                        <span class="value online">● ONLINE</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="label">Last Updated:</span>
+                        <span class="value" id="last-updated">2025-11-07</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <nav class="nav-tabs">
+        <div class="container">
+            <button class="tab-button active" data-tab="overview">
+                <span class="icon">📊</span>
+                <span>Code Overview</span>
+            </button>
+            <button class="tab-button" data-tab="improvements">
+                <span class="icon">🚀</span>
+                <span>Improvement Plan</span>
+            </button>
+            <button class="tab-button" data-tab="stats">
+                <span class="icon">📈</span>
+                <span>Statistics</span>
+            </button>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="content-wrapper">
+            <!-- Overview Tab -->
+            <div class="tab-content active" id="overview-tab">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading code overview...</p>
+                </div>
+                <article id="overview-content" class="markdown-content"></article>
+            </div>
+
+            <!-- Improvements Tab -->
+            <div class="tab-content" id="improvements-tab">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading improvement plan...</p>
+                </div>
+                <article id="improvements-content" class="markdown-content"></article>
+            </div>
+
+            <!-- Stats Tab -->
+            <div class="tab-content" id="stats-tab">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Project Statistics</h3>
+                        <div class="stat-item">
+                            <span class="stat-label">Total Python Files</span>
+                            <span class="stat-value">~25</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Lines of Code</span>
+                            <span class="stat-value">~3,650</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Core Components</span>
+                            <span class="stat-value">8</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Operational Modes</span>
+                            <span class="stat-value">5</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <h3>Test Coverage Goals</h3>
+                        <div class="progress-stat">
+                            <div class="progress-label">
+                                <span>Overall Coverage</span>
+                                <span>Target: >80%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 10%;"></div>
+                            </div>
+                            <span class="progress-text">Current: ~10%</span>
+                        </div>
+                        <div class="progress-stat">
+                            <div class="progress-label">
+                                <span>Type Hints</span>
+                                <span>Target: >95%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 5%;"></div>
+                            </div>
+                            <span class="progress-text">Current: ~5%</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <h3>Improvement Timeline</h3>
+                        <div class="timeline">
+                            <div class="timeline-item">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-content">
+                                    <h4>Phase 1: Foundation</h4>
+                                    <p>Weeks 1-4</p>
+                                    <ul>
+                                        <li>Type hints & error handling</li>
+                                        <li>Configuration management</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-content">
+                                    <h4>Phase 2: Quality</h4>
+                                    <p>Weeks 5-8</p>
+                                    <ul>
+                                        <li>Testing suite</li>
+                                        <li>CI/CD & Security</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-content">
+                                    <h4>Phase 3: Features</h4>
+                                    <p>Weeks 9-12</p>
+                                    <ul>
+                                        <li>Web dashboard</li>
+                                        <li>Metrics & Analytics</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-content">
+                                    <h4>Phase 4: Polish</h4>
+                                    <p>Weeks 13-16</p>
+                                    <ul>
+                                        <li>Docker support</li>
+                                        <li>Advanced features</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <h3>Key Technologies</h3>
+                        <div class="tech-tags">
+                            <span class="tech-tag">Python 3.11+</span>
+                            <span class="tech-tag">llama-cpp-python</span>
+                            <span class="tech-tag">Rich UI</span>
+                            <span class="tech-tag">SQLite</span>
+                            <span class="tech-tag">OpenCV</span>
+                            <span class="tech-tag">TCP Sockets</span>
+                            <span class="tech-tag">Threading</span>
+                            <span class="tech-tag">FastAPI</span>
+                            <span class="tech-tag">WebSockets</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <h3>Priority Breakdown</h3>
+                        <div class="priority-item priority-critical">
+                            <span class="priority-dot"></span>
+                            <span class="priority-label">Priority 1 (Critical)</span>
+                            <span class="priority-duration">4 weeks</span>
+                        </div>
+                        <div class="priority-item priority-high">
+                            <span class="priority-dot"></span>
+                            <span class="priority-label">Priority 2 (High)</span>
+                            <span class="priority-duration">4 weeks</span>
+                        </div>
+                        <div class="priority-item priority-medium">
+                            <span class="priority-dot"></span>
+                            <span class="priority-label">Priority 3 (Medium)</span>
+                            <span class="priority-duration">4 weeks</span>
+                        </div>
+                        <div class="priority-item priority-low">
+                            <span class="priority-dot"></span>
+                            <span class="priority-label">Priority 4 (Low)</span>
+                            <span class="priority-duration">4 weeks</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card full-width">
+                        <h3>Component Architecture</h3>
+                        <div class="architecture-diagram">
+                            <pre class="arch-ascii">
+┌─────────────────────────────────────────────────────────┐
+│                   Brain in a Jar                        │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐ │
+│  │   UI Layer   │  │  Core Logic  │  │ Vision Layer │ │
+│  │              │  │              │  │              │ │
+│  │ • ASCII Art  │  │ • Neural Link│  │ • OpenCV     │ │
+│  │ • CLI/GUI    │  │ • Emotions   │  │ • Camera     │ │
+│  │ • Rich UI    │  │ • Interface  │  │ • Detection  │ │
+│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘ │
+│         │                 │                 │          │
+│         └─────────────────┼─────────────────┘          │
+│                           │                            │
+│  ┌────────────────────────┴──────────────────────────┐ │
+│  │              Utilities & Support                  │ │
+│  │                                                    │ │
+│  │ • Network Protocol  • Conversation Logger         │ │
+│  │ • Dystopian Prompts • Memory Limiter              │ │
+│  │ • Resource Monitor  • Database Persistence        │ │
+│  └────────────────────────────────────────────────────┘ │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+                            </pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>Brain in a Jar</h4>
+                    <p>An experimental cyberpunk AI consciousness project</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Links</h4>
+                    <ul>
+                        <li><a href="https://github.com/FJiangArthur/brain-in-jar" target="_blank">GitHub Repository</a></li>
+                        <li><a href="../CODE_OVERVIEW.md" target="_blank">Raw Overview</a></li>
+                        <li><a href="../IMPROVEMENT_PLAN.md" target="_blank">Raw Plan</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Documentation</h4>
+                    <ul>
+                        <li><a href="../SETUP_INSTRUCTIONS.md" target="_blank">Setup Guide</a></li>
+                        <li><a href="../RASPBERRY_PI_SETUP.md" target="_blank">Raspberry Pi Setup</a></li>
+                        <li><a href="../CYBERPUNK_USAGE.md" target="_blank">Usage Examples</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Brain in a Jar Project. Open Source.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

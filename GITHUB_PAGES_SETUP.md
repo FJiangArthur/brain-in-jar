@@ -1,268 +1,457 @@
-# GitHub Pages Setup Guide
+# GitHub Pages Setup Guide - Static Hosting
 
-This guide explains how to deploy the Brain in a Jar documentation website to GitHub Pages.
+This guide explains how to use GitHub Pages as a **free static website host** for the Brain in a Jar documentation, without using any GitHub compute resources.
 
 ## Overview
 
-The project now includes a beautiful cyberpunk-themed documentation website located in `docs/website/`. This website displays:
+GitHub Pages serves your HTML/CSS/JS files completely free with:
+- ✅ **Zero compute costs** - Just static file hosting
+- ✅ **No GitHub Actions needed** - Pure branch-based deployment
+- ✅ **Free HTTPS** - Automatic SSL certificates
+- ✅ **Global CDN** - Fast worldwide delivery
+- ✅ **No limits** - For public repositories
 
-- **Code Overview**: Comprehensive codebase structure and architecture
-- **Improvement Plan**: Detailed roadmap for future enhancements
-- **Statistics**: Visual metrics and project stats
+You edit and test everything **locally**, then just push to GitHub for free hosting.
 
-## Quick Setup
+## Quick Setup (5 Minutes)
 
-### Option 1: Automatic Deployment (Recommended)
+### Step 1: Enable GitHub Pages
 
-The repository includes a GitHub Actions workflow that automatically deploys the website.
+1. Go to your repository on GitHub
+2. Click **Settings** (top right)
+3. Click **Pages** (left sidebar, under "Code and automation")
+4. Under "Build and deployment":
+   - **Source**: Select "Deploy from a branch"
+   - **Branch**: Select `main` (or your default branch)
+   - **Folder**: Select `/docs`
+5. Click **Save**
 
-1. **Enable GitHub Actions**:
-   - Go to your repository settings
-   - Navigate to "Actions" → "General"
-   - Enable "Read and write permissions" for workflows
+That's it! No GitHub Actions, no workflows, no compute costs.
 
-2. **Enable GitHub Pages**:
-   - Go to repository Settings
-   - Navigate to "Pages" (in the left sidebar)
-   - Under "Build and deployment":
-     - Source: Select "GitHub Actions"
-   - Save changes
+### Step 2: Verify Deployment
 
-3. **Trigger Deployment**:
-   - Push any commit to the `main` or `claude/*` branches
-   - Or manually trigger the workflow from Actions tab
+1. Wait 1-2 minutes for initial deployment
+2. Refresh the Settings → Pages page
+3. You should see: **"Your site is live at https://FJiangArthur.github.io/brain-in-jar/"**
+4. Click the URL to view your site
 
-4. **Access Your Site**:
-   - After deployment completes (1-2 minutes)
-   - Visit: `https://[your-username].github.io/brain-in-jar/`
+### Step 3: Access the Website
 
-### Option 2: Manual Setup
+The website structure is:
+```
+https://FJiangArthur.github.io/brain-in-jar/
+└── website/              # Main dashboard (docs/website/)
+```
 
-If you prefer not to use GitHub Actions:
+So visit: **https://FJiangArthur.github.io/brain-in-jar/website/**
 
-1. **Enable GitHub Pages**:
-   - Go to repository Settings → Pages
-   - Under "Build and deployment":
-     - Source: Select "Deploy from a branch"
-     - Branch: Select `main` (or your default branch)
-     - Folder: Select `/docs/website`
-   - Save changes
+## How It Works
 
-2. **Access Your Site**:
-   - Wait 1-2 minutes for deployment
-   - Visit: `https://[your-username].github.io/brain-in-jar/`
+```
+┌─────────────────────────────────────────────┐
+│         Your Local Machine                  │
+│                                             │
+│  1. Edit docs/CODE_OVERVIEW.md              │
+│  2. Edit docs/IMPROVEMENT_PLAN.md           │
+│  3. Edit docs/website/* (optional)          │
+│  4. Test locally: python -m http.server     │
+│  5. git add, commit, push                   │
+│                                             │
+└──────────────────┬──────────────────────────┘
+                   │
+                   │ git push (free)
+                   ▼
+┌─────────────────────────────────────────────┐
+│         GitHub Repository                   │
+│                                             │
+│  - Stores your files                        │
+│  - No compute/builds                        │
+│                                             │
+└──────────────────┬──────────────────────────┘
+                   │
+                   │ GitHub Pages (free)
+                   ▼
+┌─────────────────────────────────────────────┐
+│         https://[username].github.io        │
+│                                             │
+│  - Serves static files                      │
+│  - Global CDN                               │
+│  - Free HTTPS                               │
+│  - Zero cost                                │
+│                                             │
+└─────────────────────────────────────────────┘
+```
 
-## Verifying Deployment
+**Key Point**: GitHub Pages just serves your files. No processing, no builds, no compute charges. 100% free static hosting.
 
-1. **Check Actions Tab**:
-   - Go to the "Actions" tab in your repository
-   - Look for "Deploy GitHub Pages" workflow
-   - Ensure it shows a green checkmark ✅
+## Workflow: Updating the Documentation
 
-2. **Check Deployment Status**:
-   - Go to Settings → Pages
-   - You should see "Your site is live at [URL]"
+### Using the Update Script (Recommended)
 
-3. **Test the Website**:
-   - Click the provided URL
-   - You should see the cyberpunk-themed dashboard
-   - Try switching between tabs (Code Overview, Improvement Plan, Statistics)
+I've created a helper script to make updates easy:
 
-## Troubleshooting
+```bash
+# Make the script executable (first time only)
+chmod +x update-docs.sh
 
-### Site Not Loading
+# Run the script
+./update-docs.sh
+```
 
-**Issue**: 404 error when accessing the site
+The script provides options to:
+1. **Test locally** - Start a local server to preview changes
+2. **Deploy to GitHub Pages** - Commit and push changes
+3. **Update timestamps** - Automatically update document dates
 
-**Solution**:
-1. Check that GitHub Pages is enabled in Settings → Pages
-2. Verify the correct branch and folder are selected
-3. Wait 5-10 minutes for initial deployment
-4. Clear browser cache and retry
+### Manual Workflow
 
-### Content Not Displaying
+If you prefer to do it manually:
 
-**Issue**: Website loads but markdown content shows "Error Loading Content"
+#### 1. Edit Documentation Locally
 
-**Solution**:
-1. Check that `docs/CODE_OVERVIEW.md` and `docs/IMPROVEMENT_PLAN.md` exist
-2. Verify file paths in `script.js` (relative paths: `../CODE_OVERVIEW.md`)
-3. Check browser console for CORS errors
-4. Ensure files are committed to the repository
+```bash
+# Edit the markdown files
+vim docs/CODE_OVERVIEW.md
+vim docs/IMPROVEMENT_PLAN.md
 
-### GitHub Actions Failing
+# Or edit the website
+vim docs/website/index.html
+vim docs/website/style.css
+vim docs/website/script.js
+```
 
-**Issue**: Workflow shows red X ❌
+#### 2. Test Locally
 
-**Solution**:
-1. Check workflow logs in Actions tab
-2. Verify Pages is enabled in Settings
-3. Ensure workflow has proper permissions
-4. Try re-running the workflow
+```bash
+cd docs/website
+python3 -m http.server 8000
 
-### Styling Issues
+# Visit http://localhost:8000 in your browser
+# Press Ctrl+C to stop when done
+```
 
-**Issue**: Website loads but looks broken
+#### 3. Commit and Push
 
-**Solution**:
-1. Check that `style.css` is loading (browser DevTools → Network tab)
-2. Verify CDN links for Marked.js and Highlight.js are accessible
-3. Clear browser cache
-4. Try different browser
+```bash
+# Stage your changes
+git add docs/
 
-## Updating the Website
+# Commit with a descriptive message
+git commit -m "Update documentation - $(date +%Y-%m-%d)"
 
-### Automatic Updates
+# Push to GitHub (free - no compute costs)
+git push origin main
+```
 
-When using GitHub Actions, the website automatically updates when you:
-- Push changes to `main` or `claude/*` branches
-- Update any files in `docs/website/`
-- Update markdown files in `docs/`
+#### 4. Wait for Deployment
 
-### Manual Updates
+- GitHub Pages automatically updates (takes 1-2 minutes)
+- No builds, no actions, just file serving
+- Refresh your browser to see changes
 
-If using manual deployment:
-1. Make changes to files in `docs/website/` or `docs/`
-2. Commit and push to your repository
-3. Wait 1-2 minutes for GitHub Pages to rebuild
-4. Refresh the website in your browser
+## Testing Locally
 
-## Customization
+### Option 1: Python HTTP Server (Simplest)
 
-### Changing Colors
+```bash
+cd docs/website
+python3 -m http.server 8000
+
+# Visit: http://localhost:8000
+```
+
+### Option 2: PHP Built-in Server
+
+```bash
+cd docs/website
+php -S localhost:8000
+```
+
+### Option 3: Node.js http-server
+
+```bash
+npm install -g http-server
+cd docs/website
+http-server -p 8000
+```
+
+### Option 4: VS Code Live Server Extension
+
+1. Install "Live Server" extension in VS Code
+2. Right-click `docs/website/index.html`
+3. Select "Open with Live Server"
+
+## Customizing the Website
+
+### Change Colors
 
 Edit `docs/website/style.css`:
 
 ```css
 :root {
-    --bg-primary: #0a0a0a;        /* Background color */
-    --text-primary: #00ff41;      /* Main text color */
-    --accent-pink: #ff00ff;       /* Accent color 1 */
-    --accent-cyan: #00ffff;       /* Accent color 2 */
+    --bg-primary: #0a0a0a;        /* Main background */
+    --text-primary: #00ff41;      /* Text color (green) */
+    --accent-pink: #ff00ff;       /* Accent 1 (pink) */
+    --accent-cyan: #00ffff;       /* Accent 2 (cyan) */
 }
 ```
 
-### Adding Content
+Test locally, then commit and push.
 
-1. **New Documentation Files**:
-   - Create markdown files in `docs/`
-   - Update `script.js` to load them:
-   ```javascript
-   await this.loadMarkdown('../YOUR_FILE.md', 'content-id', 'tab-id');
-   ```
+### Update Content
 
-2. **New Tabs**:
-   - Add tab button in `index.html`:
-   ```html
-   <button class="tab-button" data-tab="newtab">New Tab</button>
-   ```
-   - Add corresponding content div
-   - Update JavaScript to handle the new tab
+The website automatically loads content from:
+- `docs/CODE_OVERVIEW.md`
+- `docs/IMPROVEMENT_PLAN.md`
 
-### Modifying Statistics
+Just edit these markdown files, push, and the website updates automatically.
 
-Edit the statistics in `docs/website/index.html`:
+### Add New Statistics
+
+Edit `docs/website/index.html` in the Statistics tab section:
 
 ```html
 <div class="stat-item">
-    <span class="stat-label">Your Metric</span>
-    <span class="stat-value">Value</span>
+    <span class="stat-label">Your New Stat</span>
+    <span class="stat-value">100</span>
 </div>
 ```
 
-## Performance Optimization
+## Troubleshooting
 
-The website is already optimized, but you can further improve it:
+### Issue: Site shows 404
 
-1. **Enable Compression**:
-   - GitHub Pages automatically serves gzip compressed files
+**Solution**:
+1. Check Settings → Pages shows "Your site is live"
+2. Make sure you're visiting the correct URL:
+   - Correct: `https://[username].github.io/brain-in-jar/website/`
+   - Wrong: `https://[username].github.io/brain-in-jar/`
+3. Wait 2-3 minutes after enabling Pages for first deployment
+4. Try in incognito/private browsing mode (clears cache)
 
-2. **Use Service Worker** (Advanced):
-   - Uncomment service worker registration in `script.js`
-   - Create `sw.js` for offline caching
+### Issue: Changes not showing
 
-3. **Minify Assets**:
-   - Minify `style.css` and `script.js` for production
-   - Use tools like `cssnano` or `terser`
+**Solution**:
+1. Verify your changes are committed: `git log`
+2. Verify they're pushed: `git status` should show "up to date"
+3. Wait 1-2 minutes for GitHub to update
+4. Hard refresh your browser: `Ctrl+Shift+R` (Windows/Linux) or `Cmd+Shift+R` (Mac)
+5. Clear browser cache
+6. Try incognito/private browsing mode
 
-## Custom Domain (Optional)
+### Issue: Markdown content not loading
 
-To use a custom domain:
-
-1. **Add CNAME File**:
+**Solution**:
+1. Check browser console (F12) for errors
+2. Verify markdown files exist:
    ```bash
-   echo "yourdomain.com" > docs/website/CNAME
+   ls -la docs/CODE_OVERVIEW.md
+   ls -la docs/IMPROVEMENT_PLAN.md
+   ```
+3. Check file paths in `docs/website/script.js`:
+   ```javascript
+   await this.loadMarkdown('../CODE_OVERVIEW.md', ...)
+   ```
+4. Ensure files are committed and pushed
+
+### Issue: Styles look broken
+
+**Solution**:
+1. Check browser console for CSS loading errors
+2. Hard refresh: `Ctrl+Shift+R`
+3. Verify `style.css` is committed: `git ls-files | grep style.css`
+4. Test locally first to isolate the issue
+
+## Cost Analysis
+
+### GitHub Pages Costs: $0
+
+GitHub Pages is **completely free** for public repositories:
+- ✅ Unlimited bandwidth
+- ✅ Unlimited page builds (static only)
+- ✅ Free HTTPS/SSL
+- ✅ Global CDN
+- ✅ No compute charges
+
+**Soft Limits** (rarely hit for documentation):
+- Repository size: 1 GB recommended
+- Site size: 1 GB max
+- Bandwidth: 100 GB/month soft limit
+- Builds: 10 per hour (not applicable for static hosting)
+
+For a documentation site, you'll never hit these limits.
+
+### Alternatives (For Reference)
+
+| Service | Cost | Notes |
+|---------|------|-------|
+| **GitHub Pages** | **$0** | **What you're using** ✅ |
+| Netlify Free | $0 | 100 GB bandwidth/month |
+| Vercel Free | $0 | 100 GB bandwidth/month |
+| AWS S3 + CloudFront | ~$1-5/month | Pay per request/bandwidth |
+| Digital Ocean | $5/month | Droplet required |
+
+**Verdict**: GitHub Pages is the best choice for free documentation hosting.
+
+## Advanced Configuration
+
+### Custom Domain (Optional)
+
+Want to use your own domain like `docs.yourdomain.com`?
+
+1. **Add CNAME file**:
+   ```bash
+   echo "docs.yourdomain.com" > docs/CNAME
+   git add docs/CNAME
+   git commit -m "Add custom domain"
+   git push
    ```
 
-2. **Configure DNS**:
-   - Add CNAME record pointing to `[username].github.io`
-   - Or A records pointing to GitHub Pages IPs:
-     - 185.199.108.153
-     - 185.199.109.153
-     - 185.199.110.153
-     - 185.199.111.153
+2. **Configure DNS** at your domain registrar:
+   - Add CNAME record: `docs` → `FJiangArthur.github.io`
 
-3. **Update GitHub Settings**:
+3. **Enable in GitHub**:
    - Settings → Pages → Custom domain
-   - Enter your domain and save
-   - Enable "Enforce HTTPS"
+   - Enter: `docs.yourdomain.com`
+   - Check "Enforce HTTPS" (after DNS propagates)
+
+### Multiple Environments
+
+Want separate staging/production sites?
+
+```bash
+# Production (from main branch)
+Settings → Pages → Branch: main → Folder: /docs
+
+# Staging (from develop branch)
+Settings → Environments → New environment: "staging"
+Deploy develop branch to separate URL
+```
+
+### Analytics (Optional)
+
+Track visitors without any backend:
+
+1. **Google Analytics** (Free):
+   - Create GA4 property
+   - Add to `docs/website/index.html` before `</head>`:
+   ```html
+   <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+   <script>
+     window.dataLayer = window.dataLayer || [];
+     function gtag(){dataLayer.push(arguments);}
+     gtag('js', new Date());
+     gtag('config', 'G-XXXXXXXXXX');
+   </script>
+   ```
+
+2. **GitHub Insights** (Built-in):
+   - Repository → Insights → Traffic
+   - See views, clones, referrers (basic stats)
 
 ## Security
 
 ### HTTPS
 
-GitHub Pages provides free HTTPS for all sites:
-- Automatically enabled for `*.github.io` domains
-- Available for custom domains (after DNS verification)
+GitHub Pages provides free HTTPS automatically:
+- ✅ Free SSL certificate (Let's Encrypt)
+- ✅ Automatic renewal
+- ✅ Works for both `.github.io` and custom domains
+
+### No Secrets
+
+Since this is a **static site**:
+- ✅ No backend code to secure
+- ✅ No database to protect
+- ✅ No API keys to leak
+- ✅ No server to patch
+
+Just pure HTML/CSS/JS served over HTTPS.
 
 ### Content Security
 
-The website only:
-- Loads markdown from the same repository
-- Uses CDN resources (Marked.js, Highlight.js) via HTTPS
-- Doesn't collect or transmit user data
-- No backend or database
+The website only loads:
+- Markdown from your own repository (same origin)
+- CDN resources: Marked.js and Highlight.js (HTTPS)
+- No user data collection
+- No external tracking (unless you add analytics)
 
-## Analytics (Optional)
+## Performance
 
-To track visitors:
+GitHub Pages uses a **global CDN**, so your site loads fast worldwide:
 
-1. **Google Analytics**:
-   - Add tracking code to `index.html` before `</head>`:
-   ```html
-   <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
-   ```
+- 🌍 Served from edge locations globally
+- ⚡ Cached for fast repeated visits
+- 🗜️ Gzip compression automatic
+- 📦 Small site size (~100KB total)
 
-2. **GitHub Traffic**:
-   - View basic traffic stats in Insights → Traffic
+**Load Time**: Typically <1 second
 
-## Support
+## Maintenance
 
-If you encounter issues:
+### Regular Updates
 
-1. Check this troubleshooting guide first
-2. Review GitHub Pages documentation: https://docs.github.com/pages
-3. Check Actions workflow logs for error details
-4. Verify all files are committed and pushed
+```bash
+# Update docs whenever you make changes to the codebase
+vim docs/CODE_OVERVIEW.md        # Update stats, new features
+vim docs/IMPROVEMENT_PLAN.md     # Update progress, new plans
 
-## Resources
-
-- [GitHub Pages Documentation](https://docs.github.com/pages)
-- [GitHub Actions Documentation](https://docs.github.com/actions)
-- [Marked.js Documentation](https://marked.js.org/)
-- [Highlight.js Documentation](https://highlightjs.org/)
-
-## Example Sites
-
-Once deployed, your site will look like this:
-
+# Use the update script
+./update-docs.sh
 ```
-https://[username].github.io/brain-in-jar/
-├── Code Overview Tab    (Full codebase documentation)
-├── Improvement Plan Tab (Detailed enhancement roadmap)
-└── Statistics Tab       (Visual project metrics)
+
+### Keeping it Current
+
+Set reminders to update documentation:
+- After major code changes
+- Monthly progress updates
+- When completing improvement plan items
+
+The website automatically reflects markdown changes - just edit and push!
+
+## FAQ
+
+### Q: Does this cost money?
+**A:** No, GitHub Pages is 100% free for public repositories.
+
+### Q: Are there usage limits?
+**A:** Soft limits exist (100 GB bandwidth/month, 1 GB site size), but you'll never hit them with a documentation site.
+
+### Q: Do I need GitHub Actions?
+**A:** No, we're using pure static hosting. No builds, no actions, no compute.
+
+### Q: How often can I update?
+**A:** As often as you want. Just commit and push. Updates take 1-2 minutes to propagate.
+
+### Q: Can I use a custom domain?
+**A:** Yes, add a CNAME file and configure DNS. Still free.
+
+### Q: Is HTTPS included?
+**A:** Yes, free HTTPS is automatic.
+
+### Q: What if my repo is private?
+**A:** GitHub Pages requires public repos for free tier. For private repos, you need GitHub Pro ($4/month).
+
+### Q: Can I password-protect it?
+**A:** Not with GitHub Pages alone. It's designed for public docs. Use Netlify or Vercel if you need authentication.
+
+## Summary
+
+**Your Workflow**:
+```bash
+1. Edit docs locally
+2. Test: cd docs/website && python -m http.server 8000
+3. Commit and push
+4. Wait 1-2 minutes
+5. Changes live at https://FJiangArthur.github.io/brain-in-jar/website/
 ```
+
+**Costs**: $0
+
+**Compute Used**: None (just file hosting)
+
+**Perfect for**: Documentation, portfolios, static sites
 
 ---
 
-**Need help?** Open an issue in the repository with the label "documentation" or "github-pages".
+**Need help?** Open an issue in the repository or check GitHub Pages documentation at https://docs.github.com/pages

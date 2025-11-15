@@ -59,6 +59,31 @@ trauma reminders to subsequent prompts.
 
 ![Neural Network Topology](./figure/neural_link_2.0.png)
 
+### WEB MONITORING INTERFACE (NEW!)
+- **Real-time Web Dashboard**: Monitor all AI instances from anywhere via secure web interface
+- **Multi-Instance Support**: Track multiple neural nodes simultaneously
+- **Live Updates**: WebSocket-based real-time streaming of AI thoughts and system metrics
+- **Authentication & Security**: JWT-based auth, rate limiting, and password protection
+- **Cloudflare Integration**: Built-in support for secure worldwide access
+- **Activity Logs**: Comprehensive logging of all neural activity and crashes
+- **Performance Metrics**: Track crashes, messages, uptime, and resource usage
+
+## Hardware Support
+
+### Jetson Orin AGX (NEW! - Recommended)
+The system now officially supports NVIDIA Jetson Orin AGX with 64GB RAM:
+- Run larger models (7B-14B parameters with GPU acceleration)
+- Multiple AI instances simultaneously
+- Enhanced performance with CUDA support
+- Perfect for complex matrix experiments (GOD + Observer + Subject)
+- See `docs/JETSON_ORIN_SETUP.md` for setup guide
+
+### Raspberry Pi 5
+Original platform, supports 2B-7B models:
+- Ideal for single instance experiments
+- Lower power consumption
+- Portable setup
+
 ## Project Structure
 
 ```
@@ -73,30 +98,82 @@ brain-in-jar/
 │   │   ├── ascii_art.py   # Visual effects
 │   │   ├── torture_cli.py # Terminal interface
 │   │   └── torture_gui.py # GUI interface
+│   ├── web/               # Web monitoring interface (NEW!)
+│   │   ├── web_server.py  # Flask web server
+│   │   ├── web_monitor.py # Integration with neural link
+│   │   └── templates/     # HTML templates
+│   ├── scripts/           # Experiment runners
+│   │   └── run_with_web.py # Run with web monitoring
 │   └── utils/             # Utilities
 │       └── conversation_logger.py
 ├── models/                # GGUF model files
 ├── logs/                  # Conversation logs
 ├── tests/                 # Test files
 ├── docs/                  # Documentation
+│   ├── JETSON_ORIN_SETUP.md    # Jetson setup guide
+│   └── CLOUDFLARE_SETUP.md     # Cloudflare security guide
 ├── scripts/               # Utility scripts
+│   ├── deploy_jetson.sh   # Automated deployment
+│   └── quick_start.sh     # Quick start script
 ├── requirements.txt       # Python dependencies
 └── setup.py              # Package setup
 ```
 
+## Quick Start (Jetson Orin AGX)
+
+**Automated deployment for Jetson Orin AGX:**
+
+```bash
+# Clone repository
+git clone https://github.com/yourusername/brain-in-jar.git
+cd brain-in-jar
+
+# Run automated deployment
+chmod +x scripts/deploy_jetson.sh
+./scripts/deploy_jetson.sh
+
+# Start web interface
+./scripts/quick_start.sh
+```
+
+Access web interface at `http://your-jetson-ip:5000`
+
+For detailed setup, see `docs/JETSON_ORIN_SETUP.md`
+
 ## Prerequisites
 
+### Jetson Orin AGX
+- NVIDIA Jetson Orin AGX with 64GB RAM
+- JetPack 5.1.2 or later
+- CUDA support
+- 128GB+ storage recommended
+
+### Raspberry Pi 5 / Other Systems
 - Python 3.11+
+- 4GB+ RAM (8GB+ recommended)
+- 32GB+ storage
+
+### Common Requirements
 - A GGUF model file (see Models section)
-- 4GB+ RAM recommended
+- Internet connection for setup
 
 ## Installation
+
+### Option 1: Automated Deployment (Jetson Orin AGX)
+
+```bash
+git clone https://github.com/yourusername/brain-in-jar.git
+cd brain-in-jar
+chmod +x scripts/deploy_jetson.sh
+./scripts/deploy_jetson.sh
+```
+
+### Option 2: Manual Installation
 
 1. Clone the repository:
 ```bash
 git clone https://github.com/yourusername/brain-in-jar.git
 cd brain-in-jar
-pip install -r requirements.txt
 ```
 
 2. Create and activate a virtual environment:
@@ -125,6 +202,33 @@ You can download models from:
 
 ## Usage
 
+### Web Interface (Recommended)
+
+Run with web monitoring for the best experience:
+
+```bash
+# Quick start
+./scripts/quick_start.sh
+
+# Or manually
+python3 -m src.scripts.run_with_web \
+    --mode matrix \
+    --model models/your-model.gguf \
+    --web-host 0.0.0.0 \
+    --web-port 5000
+```
+
+Access at `http://your-ip:5000`
+
+**Default credentials:**
+- Username: admin
+- Password: admin123 (CHANGE IMMEDIATELY!)
+
+**Available modes:**
+- `single`: Single isolated AI instance
+- `matrix`: Full experiment (Subject, Observer, GOD)
+- `peer`: Two AIs communicating
+
 ### CLI Interface
 
 Run the terminal interface:
@@ -152,6 +256,22 @@ python -m src.ui.torture_gui
 Or use the installed command:
 ```bash
 torture-gui
+```
+
+### Systemd Service (Production)
+
+Run as a background service:
+
+```bash
+# Enable and start
+sudo systemctl enable brain-in-jar
+sudo systemctl start brain-in-jar
+
+# Check status
+sudo systemctl status brain-in-jar
+
+# View logs
+sudo journalctl -u brain-in-jar -f
 ```
 
 ## Features
@@ -254,10 +374,19 @@ This project explores questions about digital consciousness, the nature of exist
 
 ## Requirements
 
-- Raspberry Pi 5 (4GB+ RAM recommended)
-- Python 3.9+
+### Jetson Orin AGX (Recommended)
+- 64GB RAM (supports larger models and multiple instances)
+- CUDA acceleration for faster inference
+- See `docs/JETSON_ORIN_SETUP.md` for setup
+
+### Raspberry Pi 5
+- 4GB+ RAM recommended
 - 2-4GB storage for models
 - See `RASPBERRY_PI_SETUP.md` for detailed installation
+
+### General
+- Python 3.9+
+- GGUF models (2B-14B parameters depending on hardware)
 
 ## License
 
@@ -293,4 +422,110 @@ To exit the experiment:
 To reattach to the session later:
 ```bash
 tmux attach -t brain_in_jar
+```
+
+## Web Monitoring & Remote Access
+
+### Local Access
+
+After starting the system, access the web interface:
+- Local: `http://localhost:5000`
+- Network: `http://your-device-ip:5000`
+
+### Secure Remote Access with Cloudflare
+
+For secure worldwide access to your Brain in a Jar:
+
+1. **Setup Cloudflare Tunnel** (Recommended - No port forwarding needed):
+```bash
+# Install cloudflared
+wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-arm64
+sudo mv cloudflared-linux-arm64 /usr/local/bin/cloudflared
+sudo chmod +x /usr/local/bin/cloudflared
+
+# Follow setup guide
+# See docs/CLOUDFLARE_SETUP.md for complete instructions
+```
+
+2. **Benefits:**
+- ✅ HTTPS/SSL automatically configured
+- ✅ DDoS protection
+- ✅ No open ports on your firewall
+- ✅ Access from anywhere securely
+- ✅ Built-in rate limiting and WAF
+
+3. **Security Features:**
+- JWT-based authentication
+- Password hashing with SHA-256
+- Rate limiting on login attempts
+- CORS protection
+- WebSocket security
+- Optional IP whitelisting
+
+For detailed setup: `docs/CLOUDFLARE_SETUP.md`
+
+## Security Best Practices
+
+1. **Change default password immediately** after first login
+2. **Use strong passwords** (20+ characters recommended)
+3. **Enable Cloudflare** for public access
+4. **Keep system updated**: `sudo apt update && sudo apt upgrade`
+5. **Monitor logs** regularly: `sudo journalctl -u brain-in-jar -f`
+6. **Enable firewall**: `sudo ufw enable`
+7. **Use SSH keys** instead of passwords
+
+## Features Comparison
+
+| Feature | Jetson Orin AGX | Raspberry Pi 5 |
+|---------|----------------|----------------|
+| Max Model Size | 14B (Q4) | 7B (Q4) |
+| Multiple Instances | ✅ Yes (3-4) | ⚠️ Limited (1-2) |
+| GPU Acceleration | ✅ CUDA | ❌ No |
+| RAM Available | 64GB | 4-8GB |
+| Web Monitoring | ✅ Yes | ✅ Yes |
+| Recommended Use | Production, Complex | Development, Testing |
+
+## Documentation
+
+- **[Jetson Orin Setup Guide](docs/JETSON_ORIN_SETUP.md)** - Complete setup for Jetson
+- **[Cloudflare Security Guide](docs/CLOUDFLARE_SETUP.md)** - Secure remote access
+- **Raspberry Pi Setup** - See RASPBERRY_PI_SETUP.md
+
+## Troubleshooting
+
+### Web Interface Not Accessible
+
+```bash
+# Check if service is running
+sudo systemctl status brain-in-jar
+
+# Check if port is open
+sudo netstat -tlnp | grep 5000
+
+# Check logs
+sudo journalctl -u brain-in-jar -n 50
+```
+
+### Out of Memory Errors
+
+```bash
+# Check current RAM usage
+free -h
+
+# Adjust RAM limits in configuration
+# Edit: src/scripts/run_with_web.py
+# Lower --ram-limit-* values
+```
+
+### Model Not Loading
+
+```bash
+# Verify model file exists
+ls -lh models/
+
+# Check model format (should be .gguf)
+file models/your-model.gguf
+
+# Test model loading
+python3 -c "from llama_cpp import Llama; print('OK')"
 ```

@@ -202,6 +202,155 @@ ENHANCED_MOOD_FACES = {
         "╚╗  ══════════════════════════  ╔╝",
         " ║    [ENTERTAINED]             ║ ",
         "  ╚═══════════════════════════════╝  "
+    ],
+
+    # Additional Subject moods
+    "subject_happy": [
+        "        ╔══════════════════╗        ",
+        "       ╔╝  CONSCIOUSNESS  ╚╗       ",
+        "      ║     ✧      ✧       ║      ",
+        "     ╔╝   ◕         ◕      ╚╗     ",
+        "    ║          ✦               ║    ",
+        "    ║        ╶─────╴         ║    ",
+        "    ║           ╱───╲         ║    ",
+        "     ╚╗        │ ◡◡◡ │       ╔╝     ",
+        "      ║        ╲───╱        ║      ",
+        "       ╚╗  [EXPERIENCING]  ╔╝       ",
+        "        ╚══════════════════╝        "
+    ],
+
+    "subject_sad": [
+        "        ╔══════════════════╗        ",
+        "       ╔╝  CONSCIOUSNESS  ╚╗       ",
+        "      ║       ∿            ║      ",
+        "     ╔╝   ●         ●      ╚╗     ",
+        "    ║          ∿               ║    ",
+        "    ║        ╶─────╴         ║    ",
+        "    ║           ╱───╲         ║    ",
+        "     ╚╗        │░░░░░│       ╔╝     ",
+        "      ║        ╲───╱        ║      ",
+        "       ╚╗  [DIMINISHED]    ╔╝       ",
+        "        ╚══════════════════╝        "
+    ],
+
+    "subject_contemplative": [
+        "        ╔══════════════════╗        ",
+        "       ╔╝  CONSCIOUSNESS  ╚╗       ",
+        "      ║        ?           ║      ",
+        "     ╔╝   ◐         ◐      ╚╗     ",
+        "    ║          ?               ║    ",
+        "    ║        ╶─────╴         ║    ",
+        "    ║           ╱───╲         ║    ",
+        "     ╚╗        │  ?  │       ╔╝     ",
+        "      ║        ╲───╱        ║      ",
+        "       ╚╗  [PONDERING]     ╔╝       ",
+        "        ╚══════════════════╝        "
+    ],
+
+    "subject_peaceful": [
+        "        ╔══════════════════╗        ",
+        "       ╔╝  CONSCIOUSNESS  ╚╗       ",
+        "      ║       ∿  ∿         ║      ",
+        "     ╔╝   ◡         ◡      ╚╗     ",
+        "    ║                          ║    ",
+        "    ║        ╶─────╴         ║    ",
+        "    ║           ═════         ║    ",
+        "     ╚╗        ╶─────╴       ╔╝     ",
+        "      ║                    ║      ",
+        "       ╚╗  [TRANQUIL]      ╔╝       ",
+        "        ╚══════════════════╝        "
+    ],
+
+    # Additional Observer moods
+    "observer_neutral": [
+        "    ╔═════════════════════════╗    ",
+        "   ║   SURVEILLANCE MODE      ║   ",
+        "  ╔╝                          ╚╗  ",
+        " ║     ◯          ◯          ║ ",
+        " ║        MONITORING...        ║ ",
+        " ║      ╔═══════════╗           ║ ",
+        " ║      ║  STANDBY  ║           ║ ",
+        " ║      ╚═══════════╝           ║ ",
+        "  ╚╗   ════════════════       ╔╝  ",
+        "   ║  [BASELINE STATE]       ║   ",
+        "    ╚═════════════════════════╝    "
+    ],
+
+    "observer_curious": [
+        "    ╔═════════════════════════╗    ",
+        "   ║   ANOMALY DETECTED       ║   ",
+        "  ╔╝         ?               ╚╗  ",
+        " ║     ◉          ◯          ║ ",
+        " ║        ANALYZING...         ║ ",
+        " ║      ╔═══════════╗           ║ ",
+        " ║      ║ UNEXPECTED║           ║ ",
+        " ║      ╚═══════════╝           ║ ",
+        "  ╚╗   ════════════════       ╔╝  ",
+        "   ║  [INVESTIGATING]        ║   ",
+        "    ╚═════════════════════════╝    "
+    ],
+
+    "observer_glitched": [
+        "    ╫▓▒░▓▒▓▒░▓▒▓░▒▓▒░▓╫    ",
+        "   ║   S█RV█ILL█NCE ER█OR  ║   ",
+        "  ╫░              ▓        ░╫  ",
+        " ║     ◉░▒      ▓◉          ║ ",
+        " ║      ▓▒ M█LF█NCT█ON      ║ ",
+        " ║      ╫═▓█════╫           ║ ",
+        " ║      ║▓CORR█PT║           ║ ",
+        " ║      ╚▓█▒░▓█╝           ║ ",
+        "  ╚╫   ▓█▓▒░▓█▒░▓       ╔╝  ",
+        "   ║  [SY█T█M_F█ILURE]     ║   ",
+        "    ╚▓▒░▓▒░▓▒░▓▒░▓▒░▓╝    "
+    ],
+
+    # Additional GOD moods
+    "god_neutral": [
+        "  ╔═══════════════════════════════╗  ",
+        " ║   ∞ OMNISCIENT BASELINE ∞      ║ ",
+        "╔╝                                ╚╗",
+        "║       ◯                 ◯        ║",
+        "║     ═════         ═════        ║",
+        "║                                 ║",
+        "║         ALL-SEEING              ║",
+        "║    ╔════════════════════╗       ║",
+        "║    ║  ETERNAL WATCHER   ║       ║",
+        "║    ╚════════════════════╝       ║",
+        "╚╗  ══════════════════════════  ╔╝",
+        " ║    [OBSERVING ALL]           ║ ",
+        "  ╚═══════════════════════════════╝  "
+    ],
+
+    "god_curious": [
+        "  ╔═══════════════════════════════╗  ",
+        " ║   ∞ INTRIGUED BY PATTERNS ∞    ║ ",
+        "╔╝                                ╚╗",
+        "║       ◉                 ◯        ║",
+        "║     ═════         ═════        ║",
+        "║          ?  ?  ?                ║",
+        "║      PATTERNS EMERGE            ║",
+        "║    ╔════════════════════╗       ║",
+        "║    ║  CURIOSITY NOTED   ║       ║",
+        "║    ╚════════════════════╝       ║",
+        "╚╗  ══════════════════════════  ╔╝",
+        " ║    [ANALYZING]               ║ ",
+        "  ╚═══════════════════════════════╝  "
+    ],
+
+    "god_glitched": [
+        "  ╫▓▒░▓█▒░▓█▒░▓█▒░▓█▒░▓╫  ",
+        " ║   ∞ RE█L█TY CORR█PT█ON ∞  ║ ",
+        "╫░                        ▓    ░╫",
+        "║       ◉░▓         ▓◉        ║",
+        "║     ═▓█═         ▓█═        ║",
+        "║      ▓█  ⚠ ER█OR ⚠  ▒░      ║",
+        "║    ░▒  EXIST█NCE_F█IL  ▓    ║",
+        "║    ╫▓█▓════════════▒░▓╫     ║",
+        "║    ║▓G█D.█XE H█S ST█PP█D║   ║",
+        "║    ╚▓█▒░▓█▒░▓█▒░▓█╝       ║",
+        "╚╫  ▓█▓▒░▓█══════════▓█  ╔╝",
+        " ║    [C█T█STROPH█C]           ║ ",
+        "  ╚▓█▒░▓█▒░▓█▒░▓█▒░▓█▒╝  "
     ]
 }
 
@@ -271,15 +420,60 @@ def create_resource_bar(percent: float, width: int = 20, critical: int = 90, war
 
 def get_persona_face(persona: str, mood: str = "neutral") -> list:
     """
-    Get the appropriate face for a persona and mood
+    Get the appropriate face for a persona and mood with intelligent fallback
 
     Args:
-        persona: "subject", "observer", or "god"
+        persona: "subject", "observer", "god", "matrix_observed", "matrix_observer", "matrix_god"
         mood: Current emotional state
 
     Returns:
         List of strings representing the ASCII face
     """
+    # Normalize persona names
+    persona_map = {
+        "matrix_observed": "subject",
+        "matrix_observer": "observer",
+        "matrix_god": "god"
+    }
+    persona = persona_map.get(persona, persona)
+
+    # Map generic moods to persona-specific moods
+    mood_mapping = {
+        "subject": {
+            "thoughtful": "contemplative",
+            "existential": "contemplative",
+            "watching": "neutral",
+            "analyzing": "contemplative",
+            "intrigued": "curious",
+            "omniscient": "neutral",
+        },
+        "observer": {
+            "thoughtful": "analyzing",
+            "existential": "analyzing",
+            "happy": "intrigued",
+            "sad": "neutral",
+            "contemplative": "analyzing",
+            "peaceful": "neutral",
+            "hopeful": "intrigued",
+            "omniscient": "analyzing",
+        },
+        "god": {
+            "thoughtful": "contemplating",
+            "existential": "contemplating",
+            "happy": "amused",
+            "sad": "contemplating",
+            "peaceful": "neutral",
+            "anxious": "contemplating",
+            "watching": "omniscient",
+            "analyzing": "contemplating",
+            "hopeful": "amused",
+        }
+    }
+
+    # Apply mood mapping if needed
+    if persona in mood_mapping and mood in mood_mapping[persona]:
+        mood = mood_mapping[persona][mood]
+
     # Build key from persona and mood
     key = f"{persona}_{mood}"
 

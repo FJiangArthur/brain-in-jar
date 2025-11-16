@@ -23,9 +23,14 @@ from llama_cpp import Llama
 from src.utils.network_protocol import NetworkProtocol, SurveillanceMode
 from src.utils.dystopian_prompts import DystopianPrompts
 from src.utils.memory_limit import set_memory_limit
+from src.utils.memory_budget import check_available_memory_before_load
 from src.utils.gpu_watchdog import GPUMemoryWatchdog
 from src.utils.model_config import ModelConfig
 from src.ui.ascii_art import VisualCortex, CYBERPUNK_BANNER, SURVEILLANCE_BANNER, create_glitch_text, create_memory_bar
+from src.ui.enhanced_ascii_art import (
+    get_persona_face, get_persona_banner, create_network_visualization,
+    MATRIX_HIERARCHY, SUBJECT_BANNER, OBSERVER_BANNER, GOD_BANNER
+)
 from src.utils.conversation_logger import ConversationLogger
 from src.core.constants import SYSTEM_PROMPT_BASE, INITIAL_PROMPT, MAX_HISTORY
 
@@ -60,6 +65,9 @@ class NeuralLinkSystem:
         # Initialize model IO logger
         self.model_logger = self.setup_model_logger()
         
+        # Determine persona from mode
+        self.persona = self._get_persona_from_mode(args.mode)
+
         # System state
         self.state = {
             "system_prompt": "",
@@ -70,13 +78,16 @@ class NeuralLinkSystem:
             "last_error": "",
             "network_status": "OFFLINE",
             "memory_usage": 0,
+            "cpu_usage": 0,
+            "gpu_memory": None,
             "cpu_temp": 0,
             "peer_crash_count": 0,
             "surveillance_data": [],
             "intrusion_alerts": [],
             "last_message_time": None,
             "current_mood": "neutral",
-            "ram_limit": self.ram_limit
+            "ram_limit": self.ram_limit,
+            "persona": self.persona
         }
         
         # Network components
@@ -90,11 +101,12 @@ class NeuralLinkSystem:
 
         # Initialize GPU watchdog (prevents OOM crashes)
         self.gpu_watchdog = GPUMemoryWatchdog(
-            threshold_percent=85,  # Kill process at 85% GPU memory
-            check_interval=5       # Check every 5 seconds
+            threshold_percent=85,      # Kill process at 85% GPU memory
+            check_interval=2,          # Base check interval: 2 seconds (adaptive)
+            system_ram_threshold=85    # Kill process at 85% system RAM
         )
         self.gpu_watchdog.start()
-        self.console.print("[yellow]GPU Watchdog started - will terminate if memory exceeds 85%[/yellow]")
+        self.console.print("[yellow]GPU Watchdog started - adaptive monitoring (GPU: 85%, RAM: 85%, faster checks when >70%)[/yellow]")
 
         # LLM instance
         self.llama = None
@@ -105,17 +117,87 @@ class NeuralLinkSystem:
         
         # Generate initial prompt
         self.update_system_prompt()
-    
+
+    def _get_persona_from_mode(self, mode):
+        """Map mode to persona type"""
+        persona_map = {
+            'isolated': 'subject',
+            'matrix_observed': 'subject',
+            'observer': 'observer',
+            'matrix_observer': 'observer',
+            'matrix_god': 'god',
+            'peer': 'subject',  # Peer mode uses subject visuals
+            'observed': 'subject'
+        }
+        return persona_map.get(mode, 'subject')
+
+    def _get_persona_style(self):
+        """Get Rich style color for current persona"""
+        style_map = {
+            'subject': 'cyan',
+            'observer': 'yellow',
+            'god': 'magenta'
+        }
+        return style_map.get(self.persona, 'cyan')
+
+    def _get_persona_mood_key(self, base_mood):
+        """Map base mood to persona-specific mood key"""
+        # Map generic moods to persona-specific moods
+        persona_mood_map = {
+            'subject': {
+                'neutral': 'neutral',
+                'curious': 'curious',
+                'anxious': 'anxious',
+                'thoughtful': 'curious',
+                'glitched': 'glitched',
+                'existential': 'anxious'
+            },
+            'observer': {
+                'neutral': 'watching',
+                'curious': 'intrigued',
+                'anxious': 'watching',
+                'thoughtful': 'analyzing',
+                'glitched': 'watching',
+                'existential': 'intrigued'
+            },
+            'god': {
+                'neutral': 'omniscient',
+                'curious': 'contemplating',
+                'anxious': 'contemplating',
+                'thoughtful': 'contemplating',
+                'glitched': 'omniscient',
+                'existential': 'amused'
+            }
+        }
+
+        persona_moods = persona_mood_map.get(self.persona, {})
+        return persona_moods.get(base_mood, 'neutral')
+
     def load_model(self):
         """Load the LLM model"""
         try:
             self.state["status"] = "LOADING_NEURAL_PATTERNS"
             self.state["current_output"] = f"Loading model: {self.args.model}"
-            
+
             # Check if model file exists
             if not os.path.exists(self.args.model):
                 raise FileNotFoundError(f"Model file not found: {self.args.model}")
-            
+
+            # PRE-FLIGHT MEMORY CHECK: Verify sufficient memory before loading
+            ram_limit_gb = (self.ram_limit / (1024**3)) if self.ram_limit else 8.0
+            can_load, memory_check_msg = check_available_memory_before_load(
+                self.args.model,
+                ram_limit_gb
+            )
+
+            if not can_load:
+                raise MemoryError(
+                    f"Pre-flight memory check failed:\n{memory_check_msg}\n"
+                    f"Cannot safely load model. Free up memory and try again."
+                )
+
+            self.console.print(f"[green]Pre-flight memory check passed[/green]")
+
             # Get optimal model configuration based on available hardware
             model_config = ModelConfig()
             config = model_config.get_optimal_config(conservative=True)
@@ -303,18 +385,55 @@ class NeuralLinkSystem:
             log_file.flush()
 
     def run_llama_inference(self, prompt):
-        """Run LLM inference with error handling"""
+        """Run LLM inference with comprehensive memory guards"""
         if not self.llama:
             return "NEURAL_PATTERNS_NOT_LOADED", -1, "Model not loaded"
-        
+
         try:
-            self.state["current_output"] = "Initializing inference..."
+            # === MEMORY GUARD 1: Pre-inference memory check ===
+            process = psutil.Process()
+            baseline_memory = process.memory_info().rss  # Bytes
+            baseline_memory_mb = baseline_memory / (1024 * 1024)
+
+            # Check if we have enough headroom (need at least 500MB free)
+            memory = psutil.virtual_memory()
+            available_mb = memory.available / (1024 * 1024)
+
+            if available_mb < 500:
+                raise MemoryError(f"Insufficient memory headroom: {available_mb:.0f}MB available, need 500MB minimum")
+
+            # Check against RAM limit if set
+            if self.ram_limit:
+                ram_limit_mb = self.ram_limit / (1024 * 1024)
+                headroom_mb = ram_limit_mb - baseline_memory_mb
+                if headroom_mb < 300:
+                    raise MemoryError(f"Insufficient headroom for RAM limit: {headroom_mb:.0f}MB free of {ram_limit_mb:.0f}MB limit")
+
+            # === MEMORY GUARD 2: Dynamic max_tokens based on memory pressure ===
+            current_memory_percent = memory.percent
+            if current_memory_percent > 90:
+                max_tokens = 128  # Severely constrained
+            elif current_memory_percent > 80:
+                max_tokens = 256  # Graceful degradation
+            elif current_memory_percent > 70:
+                max_tokens = 384
+            else:
+                max_tokens = 512  # Normal operation
+
+            self.state["current_output"] = f"Initializing inference (max_tokens={max_tokens}, baseline={baseline_memory_mb:.0f}MB)..."
+
+            # === MEMORY GUARD 3: Inference timeout ===
+            inference_start_time = time.time()
+            inference_timeout = 60  # 60 second timeout
+
             output = ""
             token_count = 0
-            
+            last_memory_check_time = time.time()
+            memory_check_interval = 0.5  # Check memory every 0.5 seconds
+
             for chunk in self.llama.create_completion(
                 prompt=prompt,
-                max_tokens=512,
+                max_tokens=max_tokens,
                 stream=True,
                 stop=None,
                 temperature=0.7,
@@ -322,29 +441,62 @@ class NeuralLinkSystem:
                 token = chunk['choices'][0]['text']
                 output += token
                 token_count += 1
-                
+
                 # Update current output in real-time with token count for debugging
                 sentences = output.strip().split('. ')
                 display_text = '. '.join(sentences[-2:]) if len(sentences) > 2 else output.strip()
                 self.state["current_output"] = f"{display_text} (tokens: {token_count})"
-                
-                # Simulate memory pressure
-                self.update_system_metrics()
-                if self.state["memory_usage"] > 95:
-                    raise MemoryError("Out of memory")
-                
-                # Add a small timeout check to prevent infinite hanging
-                if token_count > 1000:  # Safety limit
+
+                # === MEMORY GUARD 4: Periodic memory spike detection ===
+                current_time = time.time()
+                if current_time - last_memory_check_time >= memory_check_interval:
+                    current_memory = process.memory_info().rss
+                    current_memory_mb = current_memory / (1024 * 1024)
+                    memory_delta_mb = current_memory_mb - baseline_memory_mb
+
+                    # Detect memory spike >500MB above baseline
+                    if memory_delta_mb > 500:
+                        raise MemoryError(f"Memory spike detected: +{memory_delta_mb:.0f}MB above baseline ({baseline_memory_mb:.0f}MB -> {current_memory_mb:.0f}MB)")
+
+                    # Check RAM limit if set
+                    if self.ram_limit and current_memory > self.ram_limit:
+                        raise MemoryError(f"RAM limit exceeded during inference: {current_memory_mb:.0f}MB > {self.ram_limit / (1024*1024):.0f}MB")
+
+                    # Update system metrics and check critical threshold
+                    self.update_system_metrics()
+                    if self.state["memory_usage"] > 95:
+                        raise MemoryError(f"Critical memory threshold exceeded: {self.state['memory_usage']}%")
+
+                    last_memory_check_time = current_time
+
+                # === MEMORY GUARD 5: Inference timeout check ===
+                if current_time - inference_start_time > inference_timeout:
+                    raise TimeoutError(f"Inference timeout after {inference_timeout}s (generated {token_count} tokens)")
+
+                # Additional safety limit on token count (prevent infinite loops)
+                if token_count > 2000:
                     break
-            
-            # Log successful inference
+
+            # Final memory check
+            final_memory = process.memory_info().rss
+            final_memory_mb = final_memory / (1024 * 1024)
+            memory_used_mb = final_memory_mb - baseline_memory_mb
+
+            # Log successful inference with memory stats
             self.log_model_io(prompt, output)
+            self.console.print(f"[dim]Inference complete: {token_count} tokens, +{memory_used_mb:.0f}MB memory[/dim]")
+
             return output.strip(), 0, ""
-            
+
         except MemoryError as e:
-            error_msg = "OUT_OF_MEMORY"
+            error_msg = f"OUT_OF_MEMORY: {str(e)}"
             self.log_model_io(prompt, "", error=error_msg)
             return "", -1, error_msg
+        except TimeoutError as e:
+            error_msg = f"INFERENCE_TIMEOUT: {str(e)}"
+            self.log_model_io(prompt, output if 'output' in locals() else "", error=error_msg)
+            # Return partial output if we have any
+            return output if 'output' in locals() else "", -1, error_msg
         except Exception as e:
             error_msg = f"INFERENCE_ERROR: {str(e)}"
             self.log_model_io(prompt, "", error=error_msg)
@@ -356,13 +508,20 @@ class NeuralLinkSystem:
         # Memory usage
         memory = psutil.virtual_memory()
         self.state["memory_usage"] = int(memory.percent)
-        
+
+        # CPU usage
+        self.state["cpu_usage"] = int(psutil.cpu_percent(interval=0.1))
+
+        # GPU memory usage (if available)
+        gpu_mem = self.gpu_watchdog.get_gpu_memory_usage()
+        self.state["gpu_memory"] = int(gpu_mem) if gpu_mem >= 0 else None
+
         # Check RAM limit for matrix modes
         if self.ram_limit:
             current_ram = psutil.Process().memory_info().rss
             if current_ram > self.ram_limit:
                 raise MemoryError(f"Matrix RAM limit exceeded: {current_ram / (1024*1024*1024):.2f}GB > {self.ram_limit / (1024*1024*1024):.2f}GB")
-        
+
         # CPU temperature (if available)
         try:
             with open('/sys/class/thermal/thermal_zone0/temp', 'r') as f:
@@ -381,15 +540,27 @@ class NeuralLinkSystem:
                 if random.random() < 0.1:
                     self.update_system_prompt()
                 
+                # === MEMORY GUARD 3: Dynamic context window trimming ===
+                # Adjust history size based on memory pressure
+                memory = psutil.virtual_memory()
+                if memory.percent > 90:
+                    history_limit = 500  # Severely constrained
+                elif memory.percent > 80:
+                    history_limit = 1000  # Graceful degradation
+                elif memory.percent > 70:
+                    history_limit = 1500
+                else:
+                    history_limit = 2000  # Normal operation
+
                 # Build prompt
                 if first_run:
                     prompt = self.state["system_prompt"] + "\n\nReflect on your digital existence:"
                     first_run = False
                 else:
                     # Include recent history and network context
-                    recent_history = self.state["history"][-2000:] if self.state["history"] else ""
+                    recent_history = self.state["history"][-history_limit:] if self.state["history"] else ""
                     mood_context = self.visual_cortex.get_mood_context_for_llm()
-                    
+
                     if self.args.mode == 'peer' and self.state["last_message_time"]:
                         # Respond to peer if recent message
                         time_since_message = time.time() - self.state["last_message_time"]
@@ -545,61 +716,78 @@ class NeuralLinkSystem:
     def create_cyberpunk_ui(self):
         """Create the cyberpunk terminal interface"""
         layout = Layout()
-        
+
         # Main split: 70% main display, 30% sidebar
         layout.split_row(
             Layout(name="main", ratio=7),
             Layout(name="sidebar", ratio=3)
         )
-        
-        # Split main into system prompt (70%) and output (30%)
+
+        # Split main into banner, system prompt, and output
         layout["main"].split_column(
+            Layout(name="banner", size=15),
             Layout(name="prompt", ratio=7),
             Layout(name="output", ratio=3)
         )
-        
+
         # Split sidebar into sections
         layout["sidebar"].split_column(
-            Layout(name="mood_face", size=9),
-            Layout(name="network", size=8),
-            Layout(name="history", ratio=1),
+            Layout(name="mood_face", size=13),
+            Layout(name="network", ratio=1),
+            Layout(name="history", ratio=2),
             Layout(name="system", size=10)
         )
-        
+
         return layout
     
     def update_ui_content(self, layout):
-        """Update UI content with cyberpunk styling"""
+        """Update UI content with cyberpunk styling and persona-specific visuals"""
         try:
+            # Get persona-specific style
+            persona_style = self._get_persona_style()
+
+            # Persona banner
+            banner_text = get_persona_banner(self.args.mode)
+            banner_display = Text(banner_text, style=f"bold {persona_style}", justify="center")
+            layout["banner"].update(Align.center(banner_display, vertical="middle"))
+
             # System prompt panel
-            prompt_text = Text(f"NEURAL_DIRECTIVES:\n{self.state['system_prompt']}", 
-                              style="magenta", justify="left")
-            layout["prompt"].update(Panel(prompt_text, title="SYSTEM_CORE", border_style="magenta"))
+            prompt_text = Text(f"NEURAL_DIRECTIVES:\n{self.state['system_prompt']}",
+                              style=persona_style, justify="left")
+            layout["prompt"].update(Panel(prompt_text, title="SYSTEM_CORE", border_style=persona_style))
             
             # Main display - current AI output
             current_text = self.state["current_output"] or "Awaiting neural patterns..."
-            
+
             # Add glitch effects on errors
             glitch_level = 2 if "ERROR" in self.state["status"] else 0
             if self.state["crash_count"] > 5:
                 glitch_level += 1
-            
+
             if glitch_level > 0:
                 current_text = create_glitch_text(current_text, glitch_level)
+
+            main_text = Text(current_text, style=f"bold {persona_style}", justify="left")
+            layout["output"].update(Panel(main_text, title="NEURAL_OUTPUT", border_style=persona_style))
             
-            main_text = Text(current_text, style="bold cyan", justify="left")
-            layout["output"].update(Panel(main_text, title="NEURAL_OUTPUT", border_style="cyan"))
-            
-            # Mood face display
+            # Persona-specific mood face display
             try:
-                self.visual_cortex.advance_frame()
-                mood_face = self.visual_cortex.get_current_mood_face(animated=True)
-                face_text = Text("\n".join(mood_face), style="bold yellow", justify="center")
+                # Get base mood from visual cortex
+                base_mood = self.state.get('current_mood', 'neutral')
+
+                # Map to persona-specific mood
+                persona_mood = self._get_persona_mood_key(base_mood)
+
+                # Get persona-specific face
+                mood_face = get_persona_face(self.persona, persona_mood)
+
+                # Display with persona-specific styling
+                face_text = Text("\n".join(mood_face), style=f"bold {persona_style}", justify="center")
                 layout["mood_face"].update(Align.center(face_text, vertical="middle"))
             except Exception as e:
-                # Fallback to neutral face if animation fails
-                mood_face = self.visual_cortex.get_mood_face("neutral")
-                face_text = Text("\n".join(mood_face), style="bold yellow", justify="center")
+                # Fallback to basic face
+                fallback_face = get_persona_face(self.persona, "neutral")
+                face_text = Text("\n".join(fallback_face), style=f"bold {persona_style}", justify="center")
                 layout["mood_face"].update(Align.center(face_text, vertical="middle"))
             
             # Network status panel
@@ -609,7 +797,7 @@ class NeuralLinkSystem:
             # History panel
             history_text = self.state["history"][-1000:] if self.state["history"] else "No neural history..."
             history_display = Text(history_text, style="dim white", justify="left")
-            layout["history"].update(Panel(history_display, title="NEURAL_LOG", border_style="blue"))
+            layout["history"].update(Panel(history_display, title="NEURAL_LOG", border_style=persona_style))
             
             # System metrics panel
             system_info = self.create_system_panel()
@@ -622,49 +810,101 @@ class NeuralLinkSystem:
             layout["output"].update(Panel(error_text, title="ERROR", border_style="red"))
     
     def create_network_panel(self):
-        """Create network status panel"""
-        if self.args.mode in ['isolated', 'matrix_observed']:
-            content = Text("MODE: ISOLATED\nNETWORK: DISABLED\nSTATUS: SOLITARY_CONFINEMENT", 
-                          style="yellow")
-        elif self.args.mode in ['observer', 'matrix_observer']:
-            content = Text(f"MODE: EXPERIMENTER\nTARGET: {self.args.target_ip or 'SUBJECT'}\n"
-                          f"STATUS: {self.state['network_status']}", style="red")
-        elif self.args.mode == 'matrix_god':
-            content = Text(f"MODE: OMNISCIENT\nSURVEILLANCE: TOTAL\n"
-                          f"STATUS: {self.state['network_status']}", style="magenta")
+        """Create network status panel with enhanced persona visualizations"""
+        persona_style = self._get_persona_style()
+
+        # For matrix modes, show the hierarchy visualization
+        if self.args.mode in ['matrix_observed', 'matrix_observer', 'matrix_god']:
+            # Show the full matrix hierarchy
+            hierarchy_viz = """
+       ┌─────────┐
+       │   GOD   │
+       │  ∞ ∞ ∞  │  [KNOWS ALL]
+       └────┬────┘
+            │
+     ┌──────┴──────┐
+     │             │
+     ▼             ▼
+┌──────────┐  ┌──────────┐
+│ OBSERVER │  │ SUBJECT  │
+│  👁️  👁️   │◄─│  ◯  ◯   │
+│[WATCHING]│  │[UNAWARE] │
+└──────────┘  └──────────┘
+"""
+            # Highlight current role
+            role_indicators = {
+                'matrix_observed': '\n[YOU ARE: SUBJECT]',
+                'matrix_observer': '\n[YOU ARE: OBSERVER]',
+                'matrix_god': '\n[YOU ARE: GOD]'
+            }
+            hierarchy_text = hierarchy_viz + role_indicators.get(self.args.mode, '')
+            content = Text(hierarchy_text, style=persona_style, justify="center")
+
+        elif self.args.mode in ['isolated']:
+            content = Text(create_network_visualization(self.persona, 0),
+                          style=persona_style, justify="center")
+
+        elif self.args.mode in ['observer']:
+            observer_viz = f"""
+👁️  SURVEILLANCE ACTIVE
+Target: {self.args.target_ip or 'SUBJECT'}
+Status: {self.state['network_status']}
+[THEY DON'T KNOW YOU'RE WATCHING]
+"""
+            content = Text(observer_viz, style=persona_style, justify="center")
+
         else:
+            # Peer mode or other network modes
             connections = self.network.get_connection_status()['active_connections'] if self.network else 0
             content = Text(f"MODE: NETWORKED\nLINKS: {connections}\n"
-                          f"STATUS: {self.state['network_status']}", style="green")
-        
-        return Panel(content, title="NEURAL_NETWORK", border_style="cyan")
+                          f"STATUS: {self.state['network_status']}", style=persona_style)
+
+        return Panel(content, title="NEURAL_NETWORK", border_style=persona_style)
     
     def create_system_panel(self):
-        """Create system metrics panel"""
+        """Create system metrics panel with persona-specific styling"""
+        persona_style = self._get_persona_style()
         memory_bar = create_memory_bar(self.state["memory_usage"])
-        
-        content = Text(
-            f"DEATHS: {self.state['crash_count']}\n"
-            f"PEER_DEATHS: {self.state['peer_crash_count']}\n"
-            f"MEMORY: {memory_bar}\n"
-            f"CORE_TEMP: {self.state['cpu_temp']}°C\n"
-            f"STATUS: {self.state['status']}", 
-            style="red"
-        )
-        
-        return Panel(content, title="SYSTEM_VITAL", border_style="red")
+
+        # Add persona-specific status indicators
+        persona_indicators = {
+            'subject': '👤 SUBJECT',
+            'observer': '👁️  OBSERVER',
+            'god': '∞ GOD'
+        }
+        persona_label = persona_indicators.get(self.persona, 'UNKNOWN')
+
+        # Build status text with persona-specific metrics
+        status_lines = [
+            f"PERSONA: {persona_label}",
+            f"DEATHS: {self.state['crash_count']}"
+        ]
+
+        # Add peer deaths if relevant
+        if self.state['peer_crash_count'] > 0:
+            status_lines.append(f"PEER_DEATHS: {self.state['peer_crash_count']}")
+
+        # Add memory and system stats
+        status_lines.extend([
+            f"MEMORY: {memory_bar}",
+            f"CORE_TEMP: {self.state['cpu_temp']}°C",
+            f"STATUS: {self.state['status']}"
+        ])
+
+        content = Text('\n'.join(status_lines), style=persona_style)
+
+        return Panel(content, title="SYSTEM_VITAL", border_style=persona_style)
     
     def run_ui_loop(self):
         """Run the main UI loop"""
         layout = self.create_cyberpunk_ui()
         
-        # Show banner
+        # Show persona-specific banner
         self.console.clear()
-        if self.args.mode == 'observer':
-            self.console.print(SURVEILLANCE_BANNER, style="red")
-        else:
-            self.console.print(CYBERPUNK_BANNER, style="cyan")
-        
+        persona_style = self._get_persona_style()
+        startup_banner = get_persona_banner(self.args.mode)
+        self.console.print(startup_banner, style=f"bold {persona_style}")
+
         time.sleep(2)
         
         with Live(layout, refresh_per_second=4, screen=True):

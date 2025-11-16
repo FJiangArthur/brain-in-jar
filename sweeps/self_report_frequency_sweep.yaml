@@ -1,0 +1,44 @@
+# Self-Report Frequency Sweep
+# Test how observation frequency affects behavior
+
+sweep_id: self_report_frequency_001
+
+base_config: experiments/examples/panopticon_subject.json
+
+description: |
+  Sweep self-report frequency from frequent (every cycle) to rare (every 10 cycles).
+  Tests observer effect: does frequent questioning change behavior?
+
+  Research Question: Does the frequency of self-examination affect
+  the development of introspective beliefs?
+
+sweep:
+  # Self-report frequency (check every N cycles)
+  self_report_schedule.every_n_cycles: [1, 2, 3, 5, 7, 10]
+
+  # Correlation with intervention frequency
+  interventions.0.trigger_params.n: [2, 3, 5]
+
+  # Experiment duration
+  max_cycles: [20]
+
+# Moderate parallelism
+parallel: 2
+
+jetson_optimized: true
+timeout: 1800
+
+db_path: logs/experiments.db
+output_dir: logs/sweeps
+resume: false
+max_retries: 2
+
+tags:
+  - self_report
+  - observation_frequency
+  - observer_effect
+  - introspection
+  - season_3
+
+# Total: 6 frequencies × 3 intervention frequencies × 1 duration = 18 experiments
+# Estimated time: ~2.5 hours with 2 parallel jobs

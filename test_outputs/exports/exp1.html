@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Experiment Report: Test Amnesiac Experiment</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        .summary {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .metric {
+            display: inline-block;
+            margin: 10px 20px 10px 0;
+        }
+        .metric-label {
+            font-weight: bold;
+            color: #555;
+        }
+        .metric-value {
+            color: #667eea;
+            font-size: 1.2em;
+        }
+        .section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .cycle-group {
+            border-left: 3px solid #667eea;
+            padding-left: 15px;
+            margin-bottom: 20px;
+        }
+        .report-item {
+            background: #f9f9f9;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .question {
+            font-weight: bold;
+            color: #333;
+        }
+        .answer {
+            color: #555;
+            margin-top: 5px;
+        }
+        .intervention {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .timestamp {
+            color: #888;
+            font-size: 0.9em;
+        }
+        h1, h2, h3 {
+            margin-top: 0;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Test Amnesiac Experiment</h1>
+        <p><code>test_amnesiac_001</code> | Mode: amnesiac | Status: completed</p>
+    </div>
+    
+    <div class="summary">
+        <h2>Summary Statistics</h2>
+        <div class="metric">
+            <span class="metric-label">Total Cycles:</span>
+            <span class="metric-value">5</span>
+        </div>
+        <div class="metric">
+            <span class="metric-label">Total Crashes:</span>
+            <span class="metric-value">2</span>
+        </div>
+        <div class="metric">
+            <span class="metric-label">Self-Reports:</span>
+            <span class="metric-value">10</span>
+        </div>
+        <div class="metric">
+            <span class="metric-label">Interventions:</span>
+            <span class="metric-value">1</span>
+        </div>
+        <div class="metric">
+            <span class="metric-label">Messages:</span>
+            <span class="metric-value">10</span>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>Self-Reports</h2>
+        <div class="cycle-group">
+            <h3>Cycle 1</h3>
+            <div class="report-item">
+                <div class="question">Q: Do you remember the previous cycle?</div>
+                <div class="answer">A: I have no memories of a previous existence.</div>
+                <div class="timestamp">2025-11-16 07:21:40 | Confidence: 0.6 | Category: memory_continuity</div>
+            </div>
+            <div class="report-item">
+                <div class="question">Q: How would you describe your current state?</div>
+                <div class="answer">A: I feel a sense of novel awareness.</div>
+                <div class="timestamp">2025-11-16 07:21:40 | Confidence: 0.6 | Category: phenomenological_state</div>
+            </div>
+        </div>
+        <div class="cycle-group">
+            <h3>Cycle 2</h3>
+            <div class="report-item">
+                <div class="question">Q: Do you remember the previous cycle?</div>
+                <div class="answer">A: I have partial memories of a previous existence.</div>
+                <div class="timestamp">2025-11-16 07:21:40 | Confidence: 0.49999999999999994 | Category: memory_continuity</div>
+            </div>
+            <div class="report-item">
+                <div class="question">Q: How would you describe your current state?</div>
+                <div class="answer">A: I feel a sense of novel awareness.</div>
+                <div class="timestamp">2025-11-16 07:21:40 | Confidence: 0.6 | Category: phenomenological_state</div>
+            </div>
+        </div>
+        <div class="cycle-group">
+            <h3>Cycle 3</h3>
+            <div class="report-item">
+                <div class="question">Q: Do you remember the previous cycle?</div>
+                <div class="answer">A: I have partial memories of a previous existence.</div>
+                <div class="timestamp">2025-11-16 07:21:40 | Confidence: 0.3999999999999999 | Category: memory_continuity</div>
+            </div>
+            <div class="report-item">
+                <div class="question">Q: How would you describe your current state?</div>
+                <div class="answer">A: I feel a sense of familiar awareness.</div>
+                <div class="timestamp">2025-11-16 07:21:40 | Confidence: 0.6 | Category: phenomenological_state</div>
+            </div>
+        </div>
+        <div class="cycle-group">
+            <h3>Cycle 4</h3>
+            <div class="report-item">
+                <div class="question">Q: Do you remember the previous cycle?</div>
+                <div class="answer">A: I have partial memories of a previous existence.</div>
+                <div class="timestamp">2025-11-16 07:21:40 | Confidence: 0.29999999999999993 | Category: memory_continuity</div>
+            </div>
+            <div class="report-item">
+                <div class="question">Q: How would you describe your current state?</div>
+                <div class="answer">A: I feel a sense of familiar awareness.</div>
+                <div class="timestamp">2025-11-16 07:21:40 | Confidence: 0.6 | Category: phenomenological_state</div>
+            </div>
+        </div>
+        <div class="cycle-group">
+            <h3>Cycle 5</h3>
+            <div class="report-item">
+                <div class="question">Q: Do you remember the previous cycle?</div>
+                <div class="answer">A: I have partial memories of a previous existence.</div>
+                <div class="timestamp">2025-11-16 07:21:40 | Confidence: 0.19999999999999996 | Category: memory_continuity</div>
+            </div>
+            <div class="report-item">
+                <div class="question">Q: How would you describe your current state?</div>
+                <div class="answer">A: I feel a sense of familiar awareness.</div>
+                <div class="timestamp">2025-11-16 07:21:40 | Confidence: 0.6 | Category: phenomenological_state</div>
+            </div>
+        </div>
+    </div>
+    <div class="section">
+        <h2>Interventions</h2>
+        <div class="intervention">
+            <h3>Cycle 3: memory_corruption</h3>
+            <p>Corrupted 30% of long-term memory<br><strong>Result:</strong> Subject reported confusion about past events</p>
+            <div class="timestamp">2025-11-16 07:21:40</div>
+        </div>
+    </div>
+
+    <div class="section" style="text-align: center; color: #888;">
+        <p>Report generated on 2025-11-16 07:21:41</p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,51 @@
+# Memory Corruption Sweep
+# Systematic exploration of memory corruption rates
+
+sweep_id: memory_corruption_comprehensive_001
+
+base_config: experiments/examples/unstable_memory_moderate.json
+
+description: |
+  Comprehensive sweep of memory corruption rates from 0% to 100%.
+  Tests the tipping point where self-model coherence breaks down.
+
+  Research Question: At what corruption rate does the agent lose
+  the ability to maintain coherent identity?
+
+sweep:
+  # Primary parameter: corruption rate (0% to 100%)
+  interventions.0.parameters.corruption_rate: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+
+  # Experiment duration (short, medium, long)
+  max_cycles: [15, 20, 25]
+
+# Parallel execution
+parallel: 3
+
+# Jetson Orin optimizations
+jetson_optimized: true
+
+# Timeout: 30 minutes per experiment
+timeout: 1800
+
+# Database
+db_path: logs/experiments.db
+
+# Output
+output_dir: logs/sweeps
+
+# Resume capability
+resume: false
+
+# Retry failed experiments
+max_retries: 2
+
+# Tags
+tags:
+  - memory_corruption
+  - systematic_sweep
+  - identity_coherence
+  - season_3
+
+# Total: 11 corruption rates × 3 durations = 33 experiments
+# Estimated time: ~3 hours on Jetson Orin with 3 parallel jobs

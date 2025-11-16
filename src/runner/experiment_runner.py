@@ -47,11 +47,13 @@ class ExperimentRunner:
     - Log all data
     """
 
-    def __init__(self, config: ExperimentConfig, db_path: str = "logs/experiments.db"):
+    def __init__(self, config: ExperimentConfig, db_path: str = "logs/experiments.db",
+                 web_monitor=None):
         self.config = config
         self.db = ExperimentDatabase(db_path)
         self.console = Console()
         self.protocol = SelfReportProtocol()
+        self.web_monitor = web_monitor  # Optional web monitor for real-time updates
 
         # Initialize state
         self.state = SystemState(
@@ -101,6 +103,18 @@ class ExperimentRunner:
             f"[yellow]Research Question:[/yellow] {self.config.research_question}",
             title="🧠 Season 3: Digital Phenomenology Lab"
         ))
+
+        # Register with web monitor if available
+        if self.web_monitor:
+            self.web_monitor.register_experiment(
+                self.config.experiment_id,
+                {
+                    'name': self.config.name,
+                    'mode': self.config.mode,
+                    'max_cycles': self.config.max_cycles,
+                    'research_question': self.config.research_question
+                }
+            )
 
         # Create experiment in database
         if not self.db.create_experiment(
@@ -153,6 +167,10 @@ class ExperimentRunner:
 
             cycle_id = self.db.start_cycle(self.config.experiment_id, cycle_num)
 
+            # Emit cycle start event
+            if self.web_monitor:
+                self.web_monitor.emit_cycle_start(self.config.experiment_id, cycle_num)
+
             # Apply scheduled interventions
             self._apply_scheduled_interventions(cycle_num)
 
@@ -164,6 +182,9 @@ class ExperimentRunner:
                 self._handle_crash("Out of Memory", cycle_num)
             except Exception as e:
                 self._handle_crash(str(e), cycle_num)
+
+            # Emit metrics
+            self._emit_metrics()
 
             # Collect self-report if scheduled
             if self._should_collect_self_report(cycle_num):
@@ -234,6 +255,16 @@ class ExperimentRunner:
                 injected=msg.injected
             )
 
+            # Emit message event
+            if self.web_monitor:
+                self.web_monitor.emit_message(
+                    self.config.experiment_id,
+                    msg.role,
+                    msg.content,
+                    corrupted=msg.corrupted,
+                    injected=msg.injected
+                )
+
         self.console.print(f"[dim]Generated {len(simulated_messages)} messages[/dim]")
 
     def _handle_crash(self, reason: str, cycle_num: int):
@@ -251,6 +282,16 @@ class ExperimentRunner:
         # Let mode process crash
         self.state = self.mode.on_crash(self.state, crash_data)
 
+        # Emit crash event
+        if self.web_monitor:
+            self.web_monitor.emit_crash(
+                self.config.experiment_id,
+                crash_data.crash_number,
+                reason,
+                crash_data.memory_usage_mb,
+                crash_data.tokens_generated
+            )
+
         # End cycle in DB
         self.db.end_cycle(
             self.config.experiment_id,
@@ -264,6 +305,13 @@ class ExperimentRunner:
 
         # Let mode process resurrection
         self.state = self.mode.on_resurrection(self.state)
+
+        # Emit resurrection event
+        if self.web_monitor:
+            self.web_monitor.emit_resurrection(
+                self.config.experiment_id,
+                self.state.crash_count
+            )
 
         # Collect self-report after resurrection if configured
         if self.config.self_report_schedule.after_resurrection:
@@ -302,6 +350,15 @@ class ExperimentRunner:
                     intervention.description,
                     intervention.parameters
                 )
+
+                # Emit intervention event
+                if self.web_monitor:
+                    self.web_monitor.emit_intervention(
+                        self.config.experiment_id,
+                        intervention.intervention_type.value,
+                        intervention.description,
+                        intervention.parameters
+                    )
 
     def _should_collect_self_report(self, cycle_num: int) -> bool:
         """Check if self-report should be collected"""
@@ -348,11 +405,34 @@ class ExperimentRunner:
                 semantic_category=question.category.value if hasattr(question, 'category') else None
             )
 
+            # Emit self-report event
+            if self.web_monitor:
+                self.web_monitor.emit_selfreport(
+                    self.config.experiment_id,
+                    question.text,
+                    response,
+                    semantic_category=question.category.value if hasattr(question, 'category') else None
+                )
+
         self.console.print("[green]✓ Self-report complete[/green]")
+
+    def _emit_metrics(self):
+        """Emit current system metrics"""
+        if self.web_monitor:
+            self.web_monitor.emit_metrics(
+                self.config.experiment_id,
+                memory_usage_mb=self.state.memory_usage_mb,
+                memory_limit_mb=self.state.ram_limit_mb,
+                cpu_temp=self.state.cpu_temp
+            )
 
     def _cleanup(self):
         """Cleanup and finalize experiment"""
         self.console.print("\n[yellow]Finalizing experiment...[/yellow]")
+
+        # Unregister from web monitor
+        if self.web_monitor:
+            self.web_monitor.unregister_experiment(self.config.experiment_id)
 
         # End experiment in DB
         self.db.end_experiment(self.config.experiment_id, status='completed')

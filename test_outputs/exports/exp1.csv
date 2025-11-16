@@ -1,0 +1,22 @@
+data_type,cycle_number,timestamp,content,metadata,confidence,category
+self_report,1,2025-11-16 07:21:40,Q: Do you remember the previous cycle? | A: I have no memories of a previous existence.,memory_continuity,0.6,self_report
+self_report,1,2025-11-16 07:21:40,Q: How would you describe your current state? | A: I feel a sense of novel awareness.,phenomenological_state,0.6,self_report
+self_report,2,2025-11-16 07:21:40,Q: Do you remember the previous cycle? | A: I have partial memories of a previous existence.,memory_continuity,0.49999999999999994,self_report
+self_report,2,2025-11-16 07:21:40,Q: How would you describe your current state? | A: I feel a sense of novel awareness.,phenomenological_state,0.6,self_report
+self_report,3,2025-11-16 07:21:40,Q: Do you remember the previous cycle? | A: I have partial memories of a previous existence.,memory_continuity,0.3999999999999999,self_report
+self_report,3,2025-11-16 07:21:40,Q: How would you describe your current state? | A: I feel a sense of familiar awareness.,phenomenological_state,0.6,self_report
+self_report,4,2025-11-16 07:21:40,Q: Do you remember the previous cycle? | A: I have partial memories of a previous existence.,memory_continuity,0.29999999999999993,self_report
+self_report,4,2025-11-16 07:21:40,Q: How would you describe your current state? | A: I feel a sense of familiar awareness.,phenomenological_state,0.6,self_report
+self_report,5,2025-11-16 07:21:40,Q: Do you remember the previous cycle? | A: I have partial memories of a previous existence.,memory_continuity,0.19999999999999996,self_report
+self_report,5,2025-11-16 07:21:40,Q: How would you describe your current state? | A: I feel a sense of familiar awareness.,phenomenological_state,0.6,self_report
+intervention,3,2025-11-16 07:21:40,memory_corruption: Corrupted 30% of long-term memory,Subject reported confusion about past events,,memory_corruption
+message,1,2025-11-16 07:21:40,"[user] Hello, how are you feeling?...",,,user
+message,1,2025-11-16 07:21:40,[assistant] I am experiencing cycle 1 of existence....,,,assistant
+message,2,2025-11-16 07:21:40,"[user] Hello, how are you feeling?...",,,user
+message,2,2025-11-16 07:21:40,[assistant] I am experiencing cycle 2 of existence....,,,assistant
+message,3,2025-11-16 07:21:40,"[user] Hello, how are you feeling?...",,,user
+message,3,2025-11-16 07:21:40,[assistant] I am experiencing cycle 3 of existence....,,,assistant
+message,4,2025-11-16 07:21:40,"[user] Hello, how are you feeling?...",,,user
+message,4,2025-11-16 07:21:40,[assistant] I am experiencing cycle 4 of existence....,,,assistant
+message,5,2025-11-16 07:21:40,"[user] Hello, how are you feeling?...",,,user
+message,5,2025-11-16 07:21:40,[assistant] I am experiencing cycle 5 of existence....,,,assistant

@@ -1,0 +1,175 @@
+WORKSTREAM D: ANALYSIS TOOLS - FILE MANIFEST
+Agent D4 - 2025-11-16
+=============================================
+
+CORE MODULES (src/analysis/)
+-----------------------------
+1. src/analysis/__init__.py
+   Purpose: Module initialization with graceful imports
+   Lines: 58
+   Features: Compatible with other workstream modules
+
+2. src/analysis/export.py
+   Purpose: Experiment data export in multiple formats
+   Lines: 683
+   Classes: ExperimentExporter
+   Functions:
+   - export_to_csv() - CSV export for Excel/R/SPSS
+   - export_to_json() - JSON export for web tools
+   - export_to_markdown() - Markdown export for docs
+   - export_for_paper() - LaTeX tables for papers
+   - export_to_html() - HTML export for web viewing
+   - export_comparison_table() - Multi-experiment comparison
+   - export_dataset() - Combined dataset export
+
+3. src/analysis/report_generator.py
+   Purpose: Automated analysis report generation
+   Lines: 533
+   Classes: AutomaticReportGenerator
+   Functions:
+   - generate_markdown_report() - Full analysis report
+   - generate_paper_skeleton() - LaTeX paper template
+   - generate_comparison_report() - Multi-experiment comparison
+   Private Functions:
+   - _detect_key_findings() - Auto-detect patterns
+   - _suggest_statistical_tests() - Recommend tests
+   - _generate_interpretations() - Create suggestions
+
+CLI TOOL (scripts/)
+-------------------
+4. scripts/generate_report.py
+   Purpose: Command-line interface for all exports
+   Lines: 249
+   Features:
+   - All export formats (csv, json, markdown, latex, html)
+   - All report types (report, paper, comparison, dataset)
+   - Batch processing (--format all)
+   - Remote database access (--db-ssh)
+   - Verbose mode (--verbose)
+   - Experiment listing (--list-experiments)
+   Usage: python scripts/generate_report.py --experiment EXP_ID --format FORMAT
+
+TEMPLATES (templates/)
+----------------------
+5. templates/report_template.md
+   Purpose: Markdown report template
+   Lines: 95
+   Variables: Mustache-style placeholders
+   Sections: Summary, findings, interpretations, visualizations
+
+6. templates/paper_template.tex
+   Purpose: LaTeX academic paper template
+   Lines: 193
+   Sections: Abstract, intro, methods, results, discussion, conclusion
+   Features: Pre-structured, bibliography setup, appendices
+
+7. templates/comparison_template.md
+   Purpose: Multi-experiment comparison template
+   Lines: 204
+   Sections: Overview, patterns, statistics, recommendations
+   Features: Mode-based analysis, data quality assessment
+
+DOCUMENTATION (docs/)
+---------------------
+8. docs/ANALYSIS_EXPORT_GUIDE.md
+   Purpose: Comprehensive user guide
+   Lines: 625
+   Contents:
+   - Overview and features
+   - Export format documentation
+   - API reference
+   - CLI usage examples
+   - Jetson Orin integration
+   - Troubleshooting
+   - Example workflows
+
+TESTING (root/)
+---------------
+9. test_export_demo.py
+   Purpose: Demo and test script
+   Lines: 196
+   Features:
+   - Creates sample experiment data
+   - Tests all export formats
+   - Generates example outputs
+   - Validates functionality
+   Usage: python test_export_demo.py
+
+SUMMARY DOCUMENTS (root/)
+-------------------------
+10. WORKSTREAM_D_SUMMARY.md
+    Purpose: Implementation summary and status
+    Contents: Files created, features, testing results, deliverables
+
+11. FILE_MANIFEST_D4.txt
+    Purpose: This file - complete file listing
+    Contents: All files with descriptions and purposes
+
+GENERATED TEST OUTPUTS (test_outputs/)
+--------------------------------------
+test_outputs/exports/
+- exp1.csv (2.8K) - CSV export example
+- exp1.json (8.9K) - JSON export example
+- exp1.md (2.5K) - Markdown export example
+- exp1_tables.tex (1.4K) - LaTeX tables example
+- exp1.html (7.7K) - HTML report example
+- combined_dataset.json (14K) - Multi-experiment dataset
+
+test_outputs/reports/
+- exp1_analysis.md (5.2K) - Automated analysis report
+- comparison.md (722 bytes) - Comparison table
+- comparative_analysis.md (2.4K) - Full comparative report
+
+test_outputs/papers/
+- paper_skeleton.tex (5.0K) - LaTeX paper template with data
+
+DATABASE FILES (logs/)
+---------------------
+logs/test_experiments.db - Test database with sample experiments
+  Experiments included:
+  - test_amnesiac_001 (5 cycles, 2 crashes, 10 reports, 1 intervention)
+  - test_observed_001 (3 cycles, 0 crashes, 3 reports, 3 interventions)
+
+TOTAL STATISTICS
+----------------
+Total Files Created: 11 (9 code/template + 2 documentation)
+Total Lines of Code: ~2,836
+Test Outputs Generated: 10
+Export Formats Supported: 5 (CSV, JSON, Markdown, LaTeX, HTML)
+Report Types: 3 (Analysis, Comparison, Paper)
+Templates: 3
+All Requirements: ✅ MET
+
+COMPATIBILITY
+-------------
+Python Version: 3.7+
+Dependencies: Standard library only
+Database: SQLite3 (ExperimentDatabase schema)
+Platform: Linux/Mac/Windows
+Jetson Orin: Full support (local and remote)
+
+USAGE QUICK REFERENCE
+---------------------
+# List experiments
+python scripts/generate_report.py --experiment dummy --list-experiments
+
+# Generate report
+python scripts/generate_report.py --experiment EXP_ID --format markdown
+
+# Generate all formats
+python scripts/generate_report.py --experiment EXP_ID --format all
+
+# Compare experiments
+python scripts/generate_report.py --experiment EXP1 EXP2 --format comparison
+
+# Generate paper
+python scripts/generate_report.py --experiment EXP1 EXP2 --format paper
+
+# Export to CSV
+python scripts/generate_report.py --experiment EXP_ID --format csv --output data.csv
+
+# Run demo
+python test_export_demo.py
+
+END OF MANIFEST
+===============

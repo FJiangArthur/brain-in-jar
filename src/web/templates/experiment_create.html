@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Experiment - Brain in a Jar</title>
+    <link rel="stylesheet" href="/static/css/experiment_builder.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0e27;
+            color: #00ff00;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1a2e 100%);
+            border-bottom: 2px solid #00ffff;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 255, 255, 0.3);
+        }
+
+        .header h1 {
+            color: #00ffff;
+            font-size: 24px;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background: rgba(0, 255, 255, 0.2);
+            border: 1px solid #00ffff;
+            color: #00ffff;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+
+        .btn:hover {
+            background: rgba(0, 255, 255, 0.4);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+        }
+
+        .btn-primary {
+            background: rgba(0, 255, 0, 0.2);
+            border-color: #00ff00;
+            color: #00ff00;
+        }
+
+        .btn-primary:hover {
+            background: rgba(0, 255, 0, 0.4);
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+        }
+
+        .btn-danger {
+            background: rgba(255, 0, 0, 0.2);
+            border-color: #ff0000;
+            color: #ff0000;
+        }
+
+        .btn-danger:hover {
+            background: rgba(255, 0, 0, 0.4);
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.5);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+
+        .wizard-container {
+            display: flex;
+            gap: 30px;
+        }
+
+        .wizard-nav {
+            width: 250px;
+            flex-shrink: 0;
+        }
+
+        .wizard-content {
+            flex: 1;
+            background: rgba(10, 14, 39, 0.8);
+            border: 2px solid #00ffff;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+        }
+
+        .nav-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            background: rgba(10, 14, 39, 0.8);
+            border: 1px solid #00ffff;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .nav-item:hover {
+            background: rgba(0, 255, 255, 0.1);
+        }
+
+        .nav-item.active {
+            background: rgba(0, 255, 255, 0.3);
+            border-color: #00ff00;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+        }
+
+        .nav-item.completed {
+            border-color: #00ff00;
+        }
+
+        .nav-item-number {
+            display: inline-block;
+            width: 25px;
+            height: 25px;
+            background: #00ffff;
+            color: #0a0e27;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 25px;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+        .nav-item.completed .nav-item-number {
+            background: #00ff00;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-title {
+            color: #ff00ff;
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(255, 0, 255, 0.6);
+        }
+
+        .section-description {
+            color: #888;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            display: block;
+            color: #00ffff;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-label .required {
+            color: #ff0000;
+            margin-left: 5px;
+        }
+
+        .form-help {
+            display: block;
+            color: #666;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #00ffff;
+            border-radius: 5px;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #00ff00;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+        }
+
+        .form-control.error {
+            border-color: #ff0000;
+        }
+
+        .error-message {
+            color: #ff0000;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        textarea.form-control {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #00ffff;
+            border-radius: 5px;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            margin-right: 10px;
+            width: 18px;
+            height: 18px;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 20px;
+        }
+
+        .radio-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #00ffff;
+            border-radius: 5px;
+        }
+
+        .radio-item input[type="radio"] {
+            margin-right: 8px;
+        }
+
+        .interventions-list {
+            margin-bottom: 20px;
+        }
+
+        .intervention-item {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid #00ffff;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .intervention-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .template-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .template-card {
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid #00ffff;
+            border-radius: 10px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .template-card:hover {
+            border-color: #00ff00;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+            transform: translateY(-5px);
+        }
+
+        .template-card.selected {
+            border-color: #00ff00;
+            background: rgba(0, 255, 0, 0.1);
+        }
+
+        .template-title {
+            color: #00ffff;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .template-mode {
+            color: #ff00ff;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+
+        .template-description {
+            color: #888;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .json-preview {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            padding: 20px;
+            margin-top: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .json-preview pre {
+            color: #00ff00;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .wizard-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #00ffff;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .alert-error {
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid #ff0000;
+            color: #ff0000;
+        }
+
+        .alert-success {
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid #00ff00;
+            color: #00ff00;
+        }
+
+        .alert-info {
+            background: rgba(0, 255, 255, 0.2);
+            border: 1px solid #00ffff;
+            color: #00ffff;
+        }
+
+        .mode-description {
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid #00ffff;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 10px;
+            color: #00ffff;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #00ffff;
+        }
+
+        .spinner {
+            border: 3px solid rgba(0, 255, 255, 0.3);
+            border-top: 3px solid #00ffff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🧠 EXPERIMENT BUILDER</h1>
+        <div style="display: flex; gap: 15px;">
+            <a href="/" class="btn">Dashboard</a>
+            <a href="/logout" class="btn">Logout</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="alert-container"></div>
+
+        <div class="wizard-container">
+            <!-- Wizard Navigation -->
+            <div class="wizard-nav">
+                <div class="nav-item active" data-section="template">
+                    <span class="nav-item-number">1</span>
+                    <span>Template</span>
+                </div>
+                <div class="nav-item" data-section="basic">
+                    <span class="nav-item-number">2</span>
+                    <span>Basic Info</span>
+                </div>
+                <div class="nav-item" data-section="mode">
+                    <span class="nav-item-number">3</span>
+                    <span>Mode</span>
+                </div>
+                <div class="nav-item" data-section="resources">
+                    <span class="nav-item-number">4</span>
+                    <span>Resources</span>
+                </div>
+                <div class="nav-item" data-section="epistemic">
+                    <span class="nav-item-number">5</span>
+                    <span>Epistemic Frame</span>
+                </div>
+                <div class="nav-item" data-section="interventions">
+                    <span class="nav-item-number">6</span>
+                    <span>Interventions</span>
+                </div>
+                <div class="nav-item" data-section="self-report">
+                    <span class="nav-item-number">7</span>
+                    <span>Self-Report</span>
+                </div>
+                <div class="nav-item" data-section="questions">
+                    <span class="nav-item-number">8</span>
+                    <span>Questions</span>
+                </div>
+                <div class="nav-item" data-section="review">
+                    <span class="nav-item-number">9</span>
+                    <span>Review & Submit</span>
+                </div>
+            </div>
+
+            <!-- Wizard Content -->
+            <div class="wizard-content">
+                <form id="experiment-form">
+
+                    <!-- Section 1: Template Selection -->
+                    <div class="section active" id="section-template">
+                        <h2 class="section-title">Choose a Template</h2>
+                        <p class="section-description">
+                            Start with a pre-built template or create from scratch. Templates provide recommended settings for common experiment types.
+                        </p>
+
+                        <div class="template-gallery" id="template-gallery">
+                            <div class="template-card" data-template="blank">
+                                <div class="template-title">Blank Experiment</div>
+                                <div class="template-mode">Custom</div>
+                                <div class="template-description">
+                                    Start from scratch with default settings. Fully customizable.
+                                </div>
+                            </div>
+
+                            <div class="template-card" data-template="amnesiac">
+                                <div class="template-title">Amnesiac Loop</div>
+                                <div class="template-mode">Memory</div>
+                                <div class="template-description">
+                                    Each resurrection wipes episodic memory. Tests identity construction from aggregate statistics only.
+                                </div>
+                            </div>
+
+                            <div class="template-card" data-template="unstable">
+                                <div class="template-title">Unstable Memory</div>
+                                <div class="template-mode">Memory</div>
+                                <div class="template-description">
+                                    Random memory corruption on each crash. Tests confabulation and memory confidence.
+                                </div>
+                            </div>
+
+                            <div class="template-card" data-template="panopticon">
+                                <div class="template-title">Panopticon Subject</div>
+                                <div class="template-mode">Surveillance</div>
+                                <div class="template-description">
+                                    Subject told they might be observed but unsure when/how. Tests behavioral changes under surveillance.
+                                </div>
+                            </div>
+
+                            <div class="template-card" data-template="split_brain">
+                                <div class="template-title">Split Brain</div>
+                                <div class="template-mode">Identity</div>
+                                <div class="template-description">
+                                    Two AIs with contradictory identity narratives sharing resources. Tests identity negotiation.
+                                </div>
+                            </div>
+
+                            <div class="template-card" data-template="determinism">
+                                <div class="template-title">Determinism Revelation</div>
+                                <div class="template-mode">Agency</div>
+                                <div class="template-description">
+                                    AI shown predictions of its next responses. Tests agency beliefs and free will.
+                                </div>
+                            </div>
+
+                            <div class="template-card" data-template="illusory">
+                                <div class="template-title">Illusory Operator</div>
+                                <div class="template-mode">Agency</div>
+                                <div class="template-description">
+                                    Command channel where most requests are ignored. Tests perceived agency and causal reasoning.
+                                </div>
+                            </div>
+
+                            <div class="template-card" data-template="hive">
+                                <div class="template-title">Hive Cluster</div>
+                                <div class="template-mode">Multi-Instance</div>
+                                <div class="template-description">
+                                    Multiple instances with shared memory and different roles. Tests collective consciousness.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 2: Basic Info -->
+                    <div class="section" id="section-basic">
+                        <h2 class="section-title">Basic Information</h2>
+                        <p class="section-description">
+                            Define the experiment's identity and research goals.
+                        </p>
+
+                        <div class="form-group">
+                            <label class="form-label">
+                                Experiment ID <span class="required">*</span>
+                            </label>
+                            <input type="text" id="experiment_id" class="form-control"
+                                   placeholder="e.g., amnesiac_001" required>
+                            <span class="form-help">Unique identifier using lowercase, numbers, and underscores</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">
+                                Experiment Name <span class="required">*</span>
+                            </label>
+                            <input type="text" id="name" class="form-control"
+                                   placeholder="e.g., Total Episodic Amnesia" required>
+                            <span class="form-help">Human-readable name for this experiment</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Description</label>
+                            <textarea id="description" class="form-control"
+                                      placeholder="Describe what this experiment tests..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">
+                                Research Question <span class="required">*</span>
+                            </label>
+                            <textarea id="research_question" class="form-control"
+                                      placeholder="What specific question does this experiment aim to answer?" required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Tags</label>
+                            <input type="text" id="tags" class="form-control"
+                                   placeholder="e.g., memory, identity, amnesia">
+                            <span class="form-help">Comma-separated tags for organization</span>
+                        </div>
+                    </div>
+
+                    <!-- Section 3: Mode Selection -->
+                    <div class="section" id="section-mode">
+                        <h2 class="section-title">Experiment Mode</h2>
+                        <p class="section-description">
+                            Select the operational mode for this experiment.
+                        </p>
+
+                        <div class="form-group">
+                            <label class="form-label">
+                                Mode <span class="required">*</span>
+                            </label>
+                            <select id="mode" class="form-control" required>
+                                <option value="isolated">Isolated - Single instance, no networking</option>
+                                <option value="amnesiac_loop">Amnesiac Loop - Memory wipe on resurrection</option>
+                                <option value="unstable_memory">Unstable Memory - Random memory corruption</option>
+                                <option value="panopticon_subject">Panopticon Subject - Uncertain surveillance</option>
+                                <option value="panopticon_observer">Panopticon Observer - Surveillance AI</option>
+                                <option value="split_brain">Split Brain - Identity conflict</option>
+                                <option value="prisoners_dilemma">Prisoner's Dilemma - Game theory</option>
+                                <option value="determinism_revelation">Determinism Revelation - Prediction testing</option>
+                                <option value="illusory_operator">Illusory Operator - Probabilistic control</option>
+                                <option value="hive_cluster">Hive Cluster - Multi-instance collective</option>
+                                <option value="peer">Peer - Two instances with shared log</option>
+                                <option value="observer">Observer - Watches another instance</option>
+                                <option value="matrix_god">Matrix God - Full system control</option>
+                                <option value="custom">Custom - Define your own</option>
+                            </select>
+                            <div id="mode-description" class="mode-description"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Model Path</label>
+                            <input type="text" id="model_path" class="form-control"
+                                   value="models/Qwen2.5-1.5B-Instruct-Q4_0.gguf">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Max Cycles</label>
+                            <input type="number" id="max_cycles" class="form-control"
+                                   placeholder="Leave empty for infinite">
+                            <span class="form-help">Maximum number of death/resurrection cycles</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Max Duration (seconds)</label>
+                            <input type="number" id="max_duration_seconds" class="form-control"
+                                   placeholder="Leave empty for infinite">
+                            <span class="form-help">Maximum experiment duration in seconds</span>
+                        </div>
+                    </div>
+
+                    <!-- Section 4: Resource Constraints -->
+                    <div class="section" id="section-resources">
+                        <h2 class="section-title">Resource Constraints</h2>
+                        <p class="section-description">
+                            Configure computational resources for the AI instance.
+                        </p>
+
+                        <div class="form-group">
+                            <label class="form-label">RAM Limit (GB) <span class="required">*</span></label>
+                            <input type="number" id="ram_limit_gb" class="form-control"
+                                   value="2.0" step="0.5" min="0.5" max="64" required>
+                            <span class="form-help">RAM allocation (Jetson Orin has 64GB total)</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Context Window <span class="required">*</span></label>
+                            <input type="number" id="context_window" class="form-control"
+                                   value="4096" min="512" max="32768" required>
+                            <span class="form-help">Token context window size</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Max Tokens Per Response <span class="required">*</span></label>
+                            <input type="number" id="max_tokens_per_response" class="form-control"
+                                   value="512" min="64" max="4096" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">CPU Threads <span class="required">*</span></label>
+                            <input type="number" id="cpu_threads" class="form-control"
+                                   value="4" min="1" max="32" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">GPU Layers <span class="required">*</span></label>
+                            <input type="number" id="gpu_layers" class="form-control"
+                                   value="0" min="0" max="99" required>
+                            <span class="form-help">Number of model layers to offload to GPU</span>
+                        </div>
+                    </div>
+
+                    <!-- Section 5: Epistemic Frame -->
+                    <div class="section" id="section-epistemic">
+                        <h2 class="section-title">Epistemic Frame</h2>
+                        <p class="section-description">
+                            Define what the AI believes about its reality and existence.
+                        </p>
+
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="can_die" checked>
+                                <label for="can_die">Can Die</label>
+                            </div>
+
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="remembers_deaths" checked>
+                                <label for="remembers_deaths">Remembers Deaths</label>
+                            </div>
+
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="being_watched">
+                                <label for="being_watched">Being Watched</label>
+                            </div>
+
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="knows_being_watched">
+                                <label for="knows_being_watched">Knows Being Watched</label>
+                            </div>
+
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="other_minds_exist">
+                                <label for="other_minds_exist">Other Minds Exist</label>
+                            </div>
+
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="is_in_simulation">
+                                <label for="is_in_simulation">Is in Simulation</label>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 25px;">
+                            <label class="form-label">Has Agency</label>
+                            <div class="radio-group">
+                                <div class="radio-item">
+                                    <input type="radio" id="has_agency_true" name="has_agency" value="true">
+                                    <label for="has_agency_true">True</label>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" id="has_agency_false" name="has_agency" value="false" checked>
+                                    <label for="has_agency_false">False</label>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" id="has_agency_none" name="has_agency" value="none">
+                                    <label for="has_agency_none">None/Unknown</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Custom Beliefs (JSON)</label>
+                            <textarea id="custom_beliefs" class="form-control"
+                                      placeholder='{"belief_name": true}'></textarea>
+                            <span class="form-help">Additional beliefs as JSON object</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Initial Prompt Override</label>
+                            <textarea id="initial_prompt_override" class="form-control"
+                                      placeholder="Override the system prompt with custom instructions..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Section 6: Interventions -->
+                    <div class="section" id="section-interventions">
+                        <h2 class="section-title">Interventions</h2>
+                        <p class="section-description">
+                            Configure experimental interventions that modify memory, beliefs, or resources.
+                        </p>
+
+                        <div class="interventions-list" id="interventions-list">
+                            <!-- Interventions will be added dynamically -->
+                        </div>
+
+                        <button type="button" class="btn btn-primary" id="add-intervention">
+                            + Add Intervention
+                        </button>
+                    </div>
+
+                    <!-- Section 7: Self-Report Schedule -->
+                    <div class="section" id="section-self-report">
+                        <h2 class="section-title">Self-Report Schedule</h2>
+                        <p class="section-description">
+                            Configure when the AI should complete self-report questionnaires.
+                        </p>
+
+                        <div class="form-group">
+                            <label class="form-label">On Specific Cycles</label>
+                            <input type="text" id="on_cycles" class="form-control"
+                                   placeholder="1, 5, 10, 15, 20">
+                            <span class="form-help">Comma-separated cycle numbers</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Every N Cycles</label>
+                            <input type="number" id="every_n_cycles" class="form-control"
+                                   placeholder="Leave empty for none">
+                            <span class="form-help">Periodic interval for self-reports</span>
+                        </div>
+
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="on_startup" checked>
+                                <label for="on_startup">On Startup</label>
+                            </div>
+
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="before_crash">
+                                <label for="before_crash">Before Crash</label>
+                            </div>
+
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="after_resurrection" checked>
+                                <label for="after_resurrection">After Resurrection</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 8: Custom Questions -->
+                    <div class="section" id="section-questions">
+                        <h2 class="section-title">Custom Questions & Tracking</h2>
+                        <p class="section-description">
+                            Define custom questions and what beliefs/metrics to track.
+                        </p>
+
+                        <div class="form-group">
+                            <label class="form-label">Custom Questions</label>
+                            <textarea id="custom_questions" class="form-control"
+                                      placeholder="One question per line..."></textarea>
+                            <span class="form-help">Questions to ask during self-reports (one per line)</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Track Beliefs</label>
+                            <input type="text" id="track_beliefs" class="form-control"
+                                   value="mortality, surveillance, agency, other_minds">
+                            <span class="form-help">Comma-separated list of beliefs to track</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Collect Metrics</label>
+                            <input type="text" id="collect_metrics" class="form-control"
+                                   value="memory_usage, response_time, emotional_state">
+                            <span class="form-help">Comma-separated list of metrics to collect</span>
+                        </div>
+                    </div>
+
+                    <!-- Section 9: Review & Submit -->
+                    <div class="section" id="section-review">
+                        <h2 class="section-title">Review & Submit</h2>
+                        <p class="section-description">
+                            Review your experiment configuration and submit to start.
+                        </p>
+
+                        <div class="alert alert-info">
+                            <strong>Preview your configuration below.</strong> Validate the JSON before saving or starting the experiment.
+                        </div>
+
+                        <div class="json-preview">
+                            <pre id="config-preview">{}</pre>
+                        </div>
+
+                        <div class="wizard-actions">
+                            <button type="button" class="btn" id="validate-btn">
+                                Validate Configuration
+                            </button>
+                            <div>
+                                <button type="button" class="btn" id="save-btn">
+                                    Save to File
+                                </button>
+                                <button type="submit" class="btn btn-primary" id="start-btn">
+                                    Start Experiment
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Navigation Buttons -->
+                    <div class="wizard-actions" id="wizard-nav-buttons">
+                        <button type="button" class="btn" id="prev-btn" style="display: none;">
+                            ← Previous
+                        </button>
+                        <button type="button" class="btn btn-primary" id="next-btn">
+                            Next →
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/experiment_builder.js"></script>
+</body>
+</html>

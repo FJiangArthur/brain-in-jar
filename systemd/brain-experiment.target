@@ -1,0 +1,13 @@
+[Unit]
+Description=Brain-in-Jar Experiment Target
+Documentation=https://github.com/yourusername/brain-in-jar
+After=network.target brain-experiment-coordinator.service
+Requires=brain-experiment-coordinator.service
+
+# This target groups all experiment instances together
+# Use this to start/stop all experiments at once:
+#   sudo systemctl start brain-experiment.target
+#   sudo systemctl stop brain-experiment.target
+
+[Install]
+WantedBy=multi-user.target

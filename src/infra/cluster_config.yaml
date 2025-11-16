@@ -1,0 +1,258 @@
+# Multi-Node Cluster Configuration for Brain-in-Jar
+# Season 3: Digital Phenomenology Lab
+
+cluster:
+  name: brain-in-jar-cluster
+  description: Heterogeneous compute cluster for multi-instance experiments
+  coordinator_host: localhost
+  coordinator_port: 8888
+
+# Node definitions
+nodes:
+  # Jetson Orin AGX - High-performance GPU node
+  - name: jetson
+    host: 192.168.1.100  # CHANGE THIS to your Jetson's IP
+    type: jetson_orin
+    description: NVIDIA Jetson Orin AGX 64GB
+
+    # Resources
+    ram_gb: 64.0
+    gpu: true
+    gpu_memory_gb: 64.0  # Jetson uses unified memory
+    cpu_cores: 12
+
+    # Capacity
+    max_instances: 4  # Can run 3-4 simultaneous experiments
+    reserved_ram_gb: 8.0  # Reserve for OS and monitoring
+
+    # SSH configuration
+    ssh_user: jetson
+    ssh_port: 22
+    ssh_key_path: ~/.ssh/id_rsa  # CHANGE THIS to your key path
+
+    # Deployment
+    remote_work_dir: /home/jetson/brain-in-jar
+    python_path: /usr/bin/python3
+
+    # Monitoring
+    monitor_port: 5001  # Web monitoring interface (if enabled)
+
+  # Raspberry Pi 5 - Edge compute node
+  - name: rpi1
+    host: 192.168.1.101  # CHANGE THIS to your Pi's IP
+    type: raspberry_pi
+    description: Raspberry Pi 5 8GB
+
+    # Resources
+    ram_gb: 8.0
+    gpu: false
+    cpu_cores: 4
+
+    # Capacity
+    max_instances: 1  # Can run 1 experiment comfortably
+    reserved_ram_gb: 1.0
+
+    # SSH configuration
+    ssh_user: pi
+    ssh_port: 22
+    ssh_key_path: ~/.ssh/id_rsa  # CHANGE THIS
+
+    # Deployment
+    remote_work_dir: /home/pi/brain-in-jar
+    python_path: /usr/bin/python3
+
+    # Monitoring
+    monitor_port: 5002
+
+  # Optional: Additional Raspberry Pi
+  - name: rpi2
+    host: 192.168.1.102  # CHANGE THIS
+    type: raspberry_pi
+    description: Raspberry Pi 5 8GB (optional second node)
+
+    ram_gb: 8.0
+    gpu: false
+    cpu_cores: 4
+    max_instances: 1
+    reserved_ram_gb: 1.0
+
+    ssh_user: pi
+    ssh_port: 22
+    ssh_key_path: ~/.ssh/id_rsa
+
+    remote_work_dir: /home/pi/brain-in-jar
+    python_path: /usr/bin/python3
+    monitor_port: 5003
+
+    # Optional: Disable this node by default
+    enabled: false
+
+  # Host machine - Coordinator and fallback node
+  - name: host
+    host: localhost
+    type: host
+    description: Host coordinator machine
+
+    # Resources (adjust to your machine)
+    ram_gb: 32.0
+    gpu: false  # Set to true if you have a GPU
+    gpu_memory_gb: 0.0
+    cpu_cores: 8
+
+    # Capacity
+    max_instances: 2  # Conservative for stability
+    reserved_ram_gb: 8.0  # Reserve for coordinator
+
+    # Local execution (no SSH needed)
+    ssh_user: user
+    ssh_port: 22
+
+    # Deployment
+    remote_work_dir: /home/user/brain-in-jar
+    python_path: /usr/bin/python3
+
+    # Monitoring
+    monitor_port: 5000
+
+# Network configuration
+network:
+  # Topology hints (for placement optimization)
+  # Nodes in same subnet are considered "close"
+  subnets:
+    - name: local
+      nodes: [jetson, rpi1, rpi2, host]
+      latency_ms: 1  # LAN latency
+
+  # Port ranges for inter-instance communication
+  peer_port_range:
+    start: 9000
+    end: 9100
+
+# Default resource requirements
+# Used when not specified in experiment config
+defaults:
+  ram_gb: 2.0
+  gpu_required: false
+  gpu_memory_gb: 0.0
+
+# Health check configuration
+health_check:
+  enabled: true
+  interval_seconds: 30
+  timeout_seconds: 10
+
+  # What to check
+  checks:
+    - ssh_connectivity
+    - memory_usage
+    - disk_space
+    - process_status
+
+# Failover configuration
+failover:
+  enabled: true
+  auto_restart: true
+  max_retries: 3
+  retry_delay_seconds: 60
+
+  # When to trigger failover
+  triggers:
+    - node_unavailable
+    - experiment_crash
+    - resource_exhaustion
+
+# Logging configuration
+logging:
+  level: INFO
+
+  # Log aggregation
+  collect_logs: true
+  log_dir: logs/cluster
+
+  # Remote log streaming
+  stream_logs: true
+
+# Placement strategy configuration
+placement:
+  strategy: greedy  # Options: greedy, balanced, bin_packing
+
+  # Placement preferences
+  preferences:
+    # Prefer GPU nodes for GPU workloads
+    gpu_affinity: true
+
+    # Balance load across nodes
+    load_balancing: true
+
+    # Keep related experiments close
+    network_locality: true
+
+    # Avoid overloading nodes
+    conservative_allocation: true
+
+# Experimental features
+experimental:
+  # Enable dynamic resource scaling
+  auto_scaling: false
+
+  # Enable migration of running experiments
+  live_migration: false
+
+  # Enable GPU sharing (experimental on Jetson)
+  gpu_sharing: false
+
+# ===== Example Experiment Placements =====
+#
+# These are not active configurations, just documentation
+# of common deployment patterns
+
+example_deployments:
+  # SPLIT_BRAIN: Two instances on different nodes
+  split_brain:
+    - instance: brain_A
+      node: jetson
+      reason: GPU available for larger model
+    - instance: brain_B
+      node: rpi1
+      reason: Network isolation, different hardware
+
+  # HIVE_CLUSTER: Multiple instances, mostly on Jetson
+  hive_cluster:
+    - instance: historian
+      node: jetson
+      ram_gb: 12.0
+    - instance: critic
+      node: jetson
+      ram_gb: 12.0
+    - instance: optimist
+      node: jetson
+      ram_gb: 12.0
+    - instance: pessimist
+      node: rpi1
+      ram_gb: 6.0
+
+  # PANOPTICON: Subject on Pi, Observer on Jetson
+  panopticon:
+    - instance: subject
+      node: rpi1
+      reason: Limited resources create pressure
+    - instance: observer
+      node: jetson
+      reason: More resources for analysis tasks
+
+  # PRISONERS_DILEMMA: Symmetric placement
+  prisoners_dilemma:
+    - instance: player_a
+      node: rpi1
+    - instance: player_b
+      node: rpi2
+      reason: Identical hardware for fairness
+
+# ===== Setup Instructions =====
+#
+# 1. Update IP addresses for your Jetson and Raspberry Pi nodes
+# 2. Update SSH key paths
+# 3. Verify SSH connectivity: ssh jetson@192.168.1.100
+# 4. Ensure Python 3 and dependencies are installed on all nodes
+# 5. Deploy code to each node (see deployment instructions)
+# 6. Test with: python scripts/cluster_experiment.py --validate-config

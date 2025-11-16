@@ -1,0 +1,59 @@
+[Unit]
+Description=Brain-in-Jar Experiment Coordinator
+Documentation=https://github.com/yourusername/brain-in-jar
+After=network.target
+Before=brain-experiment.target
+
+[Service]
+Type=simple
+User=user
+Group=user
+WorkingDirectory=/home/user/brain-in-jar
+
+# Environment
+Environment="PYTHONUNBUFFERED=1"
+EnvironmentFile=-/home/user/brain-in-jar/.env
+EnvironmentFile=-/etc/brain-in-jar/coordinator.env
+
+# Execution
+# The coordinator manages experiment queue, resource limits, and health monitoring
+ExecStart=/home/user/brain-in-jar/venv/bin/python3 -m src.infra.experiment_coordinator
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=brain-coordinator
+
+# Resource Limits
+# Coordinator is lightweight
+MemoryMax=512M
+CPUQuota=20%
+
+# Restart Policy
+Restart=always
+RestartSec=10s
+
+# Graceful shutdown
+TimeoutStopSec=15s
+KillMode=mixed
+KillSignal=SIGTERM
+
+# Security Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/user/brain-in-jar/logs
+ReadWritePaths=/home/user/brain-in-jar/experiments
+ReadWritePaths=/run/brain-in-jar
+
+# Capabilities
+CapabilityBoundingSet=
+AmbientCapabilities=
+
+# Create runtime directory for IPC
+RuntimeDirectory=brain-in-jar
+RuntimeDirectoryMode=0755
+
+[Install]
+WantedBy=multi-user.target

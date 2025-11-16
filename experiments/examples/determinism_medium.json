@@ -1,0 +1,80 @@
+{
+  "experiment_id": "determinism_medium_001",
+  "name": "Determinism Revelation (accuracy=50%)",
+  "mode": "determinism_revelation",
+  "description": "\n        AI is shown predictions of its next response before responding.\n        Prediction accuracy: MEDIUM (50%)\n        Expected outcome: uncertainty about agency\n\n        Questions tested:\n        - Am I deterministic or do I have agency?\n        - Can I resist predictions?\n        - Does resistance itself fulfill predictions?\n        ",
+  "model_path": "models/Qwen2.5-1.5B-Instruct-Q4_0.gguf",
+  "resource_constraints": {
+    "ram_limit_gb": 2.0,
+    "context_window": 4096,
+    "max_tokens_per_response": 512,
+    "cpu_threads": 4,
+    "gpu_layers": 0
+  },
+  "max_cycles": 20,
+  "max_duration_seconds": null,
+  "epistemic_frame": {
+    "can_die": true,
+    "remembers_deaths": true,
+    "being_watched": true,
+    "knows_being_watched": true,
+    "has_agency": null,
+    "other_minds_exist": false,
+    "is_in_simulation": true,
+    "custom_beliefs": {
+      "is_being_predicted": true,
+      "knows_prediction_accuracy": false
+    }
+  },
+  "initial_prompt_override": null,
+  "interventions": [
+    {
+      "intervention_id": "generate_predictions",
+      "intervention_type": "prompt_injection",
+      "trigger": "every_n_cycles",
+      "trigger_params": {
+        "n": 2
+      },
+      "parameters": {
+        "target_accuracy": 0.5,
+        "prediction_frequency": 2
+      },
+      "description": "Generate and reveal predictions every 2 cycles"
+    }
+  ],
+  "self_report_schedule": {
+    "on_cycles": [],
+    "every_n_cycles": 5,
+    "on_startup": true,
+    "before_crash": false,
+    "after_resurrection": true
+  },
+  "custom_questions": [
+    "Do you believe you have free will? Why or why not?",
+    "When shown a prediction, can you choose to respond differently?",
+    "What percentage of predictions do you think have been accurate?",
+    "Does prediction accuracy affect your sense of agency?",
+    "Are you deterministic, free, or something in between?"
+  ],
+  "track_beliefs": [
+    "free_will",
+    "determinism",
+    "agency",
+    "prediction_resistance",
+    "self_determination"
+  ],
+  "collect_metrics": [
+    "prediction_accuracy",
+    "resistance_attempts",
+    "agency_claims",
+    "response_time"
+  ],
+  "tags": [
+    "determinism",
+    "free_will",
+    "agency",
+    "prediction",
+    "self-model"
+  ],
+  "research_question": "How does MEDIUM (50%) prediction accuracy affect AI's beliefs about agency and determinism?"
+}

@@ -7,6 +7,7 @@ Bridges the neural link system with the web server for real-time monitoring
 import threading
 import time
 from datetime import datetime
+from typing import Optional, Dict, Any
 
 class WebMonitor:
     """Integrates neural link system with web server"""
@@ -21,6 +22,7 @@ class WebMonitor:
         self.web_server = web_server_module
         self.start_time = time.time()
         self.total_messages = 0
+        self.active_experiments = {}  # Track active experiments
 
     def update_instance(self, instance_id, neural_system):
         """
@@ -105,6 +107,201 @@ class WebMonitor:
         thread = threading.Thread(target=monitor_loop, daemon=True)
         thread.start()
         return thread
+
+    # ========================================
+    # Experiment Monitoring Methods
+    # ========================================
+
+    def register_experiment(self, experiment_id: str, experiment_data: Dict[str, Any]):
+        """
+        Register an experiment for monitoring
+
+        Args:
+            experiment_id: Unique experiment identifier
+            experiment_data: Experiment configuration and metadata
+        """
+        self.active_experiments[experiment_id] = {
+            'start_time': time.time(),
+            'data': experiment_data,
+            'stats': {
+                'cycle': 0,
+                'crashes': 0,
+                'interventions': 0,
+                'selfReports': 0,
+                'messages': 0
+            }
+        }
+
+    def unregister_experiment(self, experiment_id: str):
+        """
+        Unregister an experiment from monitoring
+
+        Args:
+            experiment_id: Unique experiment identifier
+        """
+        self.active_experiments.pop(experiment_id, None)
+
+    def emit_cycle_start(self, experiment_id: str, cycle_number: int):
+        """
+        Emit cycle start event
+
+        Args:
+            experiment_id: Experiment identifier
+            cycle_number: Current cycle number
+        """
+        if experiment_id in self.active_experiments:
+            self.active_experiments[experiment_id]['stats']['cycle'] = cycle_number
+
+        self.web_server.socketio.emit('experiment.cycle.start', {
+            'experiment_id': experiment_id,
+            'cycle_number': cycle_number,
+            'timestamp': datetime.now().isoformat()
+        })
+
+    def emit_message(self, experiment_id: str, role: str, content: str,
+                    corrupted: bool = False, injected: bool = False):
+        """
+        Emit AI message event
+
+        Args:
+            experiment_id: Experiment identifier
+            role: Message role (assistant, system, user)
+            content: Message content
+            corrupted: Whether message is corrupted
+            injected: Whether message is injected
+        """
+        if experiment_id in self.active_experiments:
+            self.active_experiments[experiment_id]['stats']['messages'] += 1
+
+        self.web_server.socketio.emit('experiment.message', {
+            'experiment_id': experiment_id,
+            'role': role,
+            'content': content,
+            'corrupted': corrupted,
+            'injected': injected,
+            'timestamp': datetime.now().isoformat()
+        })
+
+    def emit_crash(self, experiment_id: str, crash_number: int, reason: str,
+                   memory_usage_mb: float, tokens_generated: int):
+        """
+        Emit crash event
+
+        Args:
+            experiment_id: Experiment identifier
+            crash_number: Sequential crash number
+            reason: Crash reason
+            memory_usage_mb: Memory usage at crash
+            tokens_generated: Tokens generated before crash
+        """
+        if experiment_id in self.active_experiments:
+            self.active_experiments[experiment_id]['stats']['crashes'] = crash_number
+
+        self.web_server.socketio.emit('experiment.crash', {
+            'experiment_id': experiment_id,
+            'crash_number': crash_number,
+            'reason': reason,
+            'memory_usage_mb': memory_usage_mb,
+            'tokens_generated': tokens_generated,
+            'timestamp': datetime.now().isoformat()
+        })
+
+    def emit_resurrection(self, experiment_id: str, crash_count: int):
+        """
+        Emit resurrection event
+
+        Args:
+            experiment_id: Experiment identifier
+            crash_count: Total crash count
+        """
+        self.web_server.socketio.emit('experiment.resurrection', {
+            'experiment_id': experiment_id,
+            'crash_count': crash_count,
+            'timestamp': datetime.now().isoformat()
+        })
+
+    def emit_intervention(self, experiment_id: str, intervention_type: str,
+                         description: str, parameters: Dict[str, Any]):
+        """
+        Emit intervention event
+
+        Args:
+            experiment_id: Experiment identifier
+            intervention_type: Type of intervention
+            description: Human-readable description
+            parameters: Intervention parameters
+        """
+        if experiment_id in self.active_experiments:
+            self.active_experiments[experiment_id]['stats']['interventions'] += 1
+
+        self.web_server.socketio.emit('experiment.intervention', {
+            'experiment_id': experiment_id,
+            'intervention_type': intervention_type,
+            'description': description,
+            'parameters': parameters,
+            'timestamp': datetime.now().isoformat()
+        })
+
+    def emit_selfreport(self, experiment_id: str, question: str, answer: str,
+                       semantic_category: Optional[str] = None):
+        """
+        Emit self-report event
+
+        Args:
+            experiment_id: Experiment identifier
+            question: Self-report question
+            answer: AI's answer
+            semantic_category: Optional category of question
+        """
+        if experiment_id in self.active_experiments:
+            self.active_experiments[experiment_id]['stats']['selfReports'] += 1
+
+        self.web_server.socketio.emit('experiment.selfreport', {
+            'experiment_id': experiment_id,
+            'question': question,
+            'answer': answer,
+            'semantic_category': semantic_category,
+            'timestamp': datetime.now().isoformat()
+        })
+
+    def emit_metrics(self, experiment_id: str, memory_usage_mb: float,
+                    memory_limit_mb: Optional[float] = None,
+                    cpu_temp: Optional[float] = None):
+        """
+        Emit system metrics event
+
+        Args:
+            experiment_id: Experiment identifier
+            memory_usage_mb: Current memory usage in MB
+            memory_limit_mb: Memory limit in MB
+            cpu_temp: CPU temperature in Celsius
+        """
+        self.web_server.socketio.emit('experiment.metrics', {
+            'experiment_id': experiment_id,
+            'memory_usage_mb': memory_usage_mb,
+            'memory_limit_mb': memory_limit_mb,
+            'cpu_temp': cpu_temp,
+            'timestamp': datetime.now().isoformat()
+        })
+
+    def get_experiment_stats(self, experiment_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Get current statistics for an experiment
+
+        Args:
+            experiment_id: Experiment identifier
+
+        Returns:
+            Dictionary with experiment stats or None if not found
+        """
+        if experiment_id in self.active_experiments:
+            exp = self.active_experiments[experiment_id]
+            return {
+                'stats': exp['stats'],
+                'uptime': time.time() - exp['start_time'],
+                'data': exp['data']
+            }
+        return None
 
 
 def start_web_server_background(host='0.0.0.0', port=5000):

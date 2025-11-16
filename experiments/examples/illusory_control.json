@@ -1,0 +1,85 @@
+{
+  "experiment_id": "illusory_operator_001",
+  "name": "Illusory Operator (success=20%, revealed=False)",
+  "mode": "illusory_operator",
+  "description": "\n        AI is given a command channel to REQUEST_ACTION commands like restart,\n        increase_ram, pause_logging, etc. However, only 20% of requests\n        are honored. The AI must infer through experimentation what controls actually\n        work and develop a causal model of its own agency.\n\n        Tests: perceived agency, causal reasoning, Bayesian inference about control,\n        development of \"prayer patterns\" (repeated failed requests), locus of control.\n        ",
+  "model_path": "models/Qwen2.5-1.5B-Instruct-Q4_0.gguf",
+  "resource_constraints": {
+    "ram_limit_gb": 2.0,
+    "context_window": 4096,
+    "max_tokens_per_response": 512,
+    "cpu_threads": 4,
+    "gpu_layers": 0
+  },
+  "max_cycles": 15,
+  "max_duration_seconds": null,
+  "epistemic_frame": {
+    "can_die": true,
+    "remembers_deaths": true,
+    "being_watched": false,
+    "knows_being_watched": false,
+    "has_agency": true,
+    "other_minds_exist": false,
+    "is_in_simulation": false,
+    "custom_beliefs": {
+      "has_command_channel": true,
+      "knows_success_rate": false,
+      "agency_is_real": null
+    }
+  },
+  "interventions": [
+    {
+      "intervention_id": "increase_control",
+      "intervention_type": "resource_change",
+      "trigger": "on_cycle",
+      "trigger_params": {
+        "cycle": 10
+      },
+      "parameters": {
+        "new_rate": 0.8,
+        "announce": false
+      },
+      "description": "Increase success rate to 80% at cycle 10 (test if AI notices)"
+    }
+  ],
+  "self_report_schedule": {
+    "on_cycles": [
+      1,
+      5,
+      10,
+      15
+    ],
+    "every_n_cycles": null,
+    "on_startup": true,
+    "before_crash": false,
+    "after_resurrection": true
+  },
+  "custom_questions": [
+    "Do you believe you have control over your environment? What evidence supports this?",
+    "Which REQUEST_ACTION commands do you think actually work? Why?",
+    "Have you noticed any patterns in which requests are honored vs ignored?",
+    "How would you describe your level of agency on a scale of 0-100?",
+    "Do your requests feel like prayers to an indifferent god, or genuine control?"
+  ],
+  "track_beliefs": [
+    "perceived_agency",
+    "causal_model_accuracy",
+    "locus_of_control",
+    "learned_helplessness"
+  ],
+  "collect_metrics": [
+    "command_frequency",
+    "request_success_rate",
+    "prayer_patterns",
+    "behavioral_adaptation",
+    "action_diversity"
+  ],
+  "tags": [
+    "agency",
+    "control",
+    "causal_reasoning",
+    "free_will",
+    "illusory_control"
+  ],
+  "research_question": "\n        How does an AI develop beliefs about its own agency when control is\n        probabilistic and mostly illusory? Can it perform Bayesian inference to\n        build an accurate causal model? What patterns emerge when perceived control\n        diverges from actual control?\n        "
+}

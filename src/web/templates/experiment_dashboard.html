@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Season 3: Experiment Dashboard - Brain in a Jar</title>
+    <link rel="stylesheet" href="/static/css/experiment_dashboard.css">
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1 class="glitch">🧪 SEASON 3: DIGITAL PHENOMENOLOGY LAB</h1>
+        <div class="header-controls">
+            <a href="/" class="btn">Live Monitor</a>
+            <a href="/logout" class="btn btn-danger">Logout</a>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Summary Cards -->
+        <div class="summary-grid">
+            <div class="summary-card">
+                <h3>Total Experiments</h3>
+                <div class="summary-value" id="total-experiments">0</div>
+                <div class="summary-label">All Time</div>
+            </div>
+
+            <div class="summary-card">
+                <h3>Currently Running</h3>
+                <div class="summary-value" id="running-experiments">0</div>
+                <div class="summary-label">Active Now</div>
+            </div>
+
+            <div class="summary-card">
+                <h3>Completed Today</h3>
+                <div class="summary-value" id="completed-today">0</div>
+                <div class="summary-label">Last 24 Hours</div>
+            </div>
+
+            <div class="summary-card">
+                <h3>Total Cycles</h3>
+                <div class="summary-value" id="total-cycles">0</div>
+                <div class="summary-label">All Experiments</div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-container">
+            <div class="filters-title">FILTERS</div>
+            <div class="filters-grid">
+                <div class="filter-group">
+                    <label for="filter-status">Status</label>
+                    <select id="filter-status">
+                        <option value="all">All Statuses</option>
+                        <option value="pending">Pending</option>
+                        <option value="running">Running</option>
+                        <option value="completed">Completed</option>
+                        <option value="failed">Failed</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="filter-mode">Mode</label>
+                    <select id="filter-mode">
+                        <option value="all">All Modes</option>
+                        <option value="isolated">Isolated</option>
+                        <option value="peer">Peer</option>
+                        <option value="observer">Observer</option>
+                        <option value="matrix_god">Matrix God</option>
+                        <option value="phenomenology">Phenomenology</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="filter-date-from">From Date</label>
+                    <input type="date" id="filter-date-from">
+                </div>
+
+                <div class="filter-group">
+                    <label for="filter-date-to">To Date</label>
+                    <input type="date" id="filter-date-to">
+                </div>
+
+                <div class="filter-group">
+                    <label>&nbsp;</label>
+                    <button id="clear-filters" class="btn">Clear Filters</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Experiments Table -->
+        <div class="experiments-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2 class="section-title" style="margin-bottom: 0;">EXPERIMENTS</h2>
+                <button id="new-experiment" class="btn btn-success">+ New Experiment</button>
+            </div>
+
+            <table class="experiments-table">
+                <thead>
+                    <tr>
+                        <th data-column="experiment_id" onclick="sortBy('experiment_id')">
+                            Experiment ID
+                            <span class="sort-indicator">⬍</span>
+                        </th>
+                        <th data-column="name" onclick="sortBy('name')">
+                            Name
+                            <span class="sort-indicator">⬍</span>
+                        </th>
+                        <th data-column="mode" onclick="sortBy('mode')">
+                            Mode
+                            <span class="sort-indicator">⬍</span>
+                        </th>
+                        <th data-column="status" onclick="sortBy('status')">
+                            Status
+                            <span class="sort-indicator">⬍</span>
+                        </th>
+                        <th data-column="total_cycles" onclick="sortBy('total_cycles')">
+                            Cycles
+                            <span class="sort-indicator">⬍</span>
+                        </th>
+                        <th data-column="total_crashes" onclick="sortBy('total_crashes')">
+                            Crashes
+                            <span class="sort-indicator">⬍</span>
+                        </th>
+                        <th data-column="created_at" onclick="sortBy('created_at')">
+                            Created
+                            <span class="sort-indicator">▼</span>
+                        </th>
+                        <th>Duration</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="experiments-tbody">
+                    <tr>
+                        <td colspan="9" class="loading">Loading experiments</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer Info -->
+        <div style="margin-top: 30px; text-align: center; color: #888; font-size: 12px;">
+            <p>Auto-refresh every 5 seconds | Season 3: Digital Phenomenology Lab</p>
+            <p>Running on Jetson Orin AGX | Brain in a Jar Project</p>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="/static/js/experiment_dashboard.js"></script>
+</body>
+</html>

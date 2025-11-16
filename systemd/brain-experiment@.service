@@ -1,0 +1,86 @@
+[Unit]
+Description=Brain-in-Jar Experiment: %i
+Documentation=https://github.com/yourusername/brain-in-jar
+After=network.target
+PartOf=brain-experiment.target
+
+# Dependencies
+Requires=brain-experiment.target
+
+[Service]
+Type=simple
+User=user
+Group=user
+WorkingDirectory=/home/user/brain-in-jar
+
+# Environment
+Environment="PYTHONUNBUFFERED=1"
+Environment="EXPERIMENT_ID=%i"
+EnvironmentFile=-/home/user/brain-in-jar/.env
+EnvironmentFile=-/etc/brain-in-jar/experiments/%i.env
+
+# Execution
+ExecStart=/home/user/brain-in-jar/venv/bin/python3 -m src.runner.experiment_runner \
+    --config /home/user/brain-in-jar/experiments/configs/%i.json \
+    --db /home/user/brain-in-jar/logs/experiments.db
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=brain-experiment-%i
+
+# Resource Limits
+# RAM limit (default 4GB, override in %i.env)
+MemoryMax=${EXPERIMENT_RAM_LIMIT:-4G}
+MemorySwapMax=0
+MemoryAccounting=true
+
+# CPU limits (default 80% of available cores)
+CPUQuota=${EXPERIMENT_CPU_QUOTA:-80%}
+CPUAccounting=true
+
+# Process limits
+TasksMax=512
+LimitNOFILE=65536
+
+# Restart Policy
+# Auto-restart on crashes (experiment crash/resurrection semantics)
+Restart=on-failure
+RestartSec=5s
+StartLimitInterval=300s
+StartLimitBurst=3
+
+# Graceful shutdown
+# Give experiment time to save state on shutdown
+TimeoutStopSec=30s
+KillMode=mixed
+KillSignal=SIGTERM
+
+# Security Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/user/brain-in-jar/logs
+ReadWritePaths=/home/user/brain-in-jar/experiments
+
+# Capabilities (drop all unnecessary)
+CapabilityBoundingSet=
+AmbientCapabilities=
+
+# Jetson Orin Specific: GPU Access
+# Allow access to CUDA devices
+DeviceAllow=/dev/nvidia0 rw
+DeviceAllow=/dev/nvidiactl rw
+DeviceAllow=/dev/nvidia-modeset rw
+DeviceAllow=/dev/nvidia-uvm rw
+DeviceAllow=/dev/nvidia-uvm-tools rw
+SupplementaryGroups=video
+
+# Temperature-based throttling (Jetson Orin)
+# Monitor via external script if temperature exceeds threshold
+# (Implementation in coordinator service)
+
+[Install]
+WantedBy=brain-experiment.target
+WantedBy=multi-user.target

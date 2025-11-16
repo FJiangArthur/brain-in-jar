@@ -1,0 +1,55 @@
+# Example Sweep Configuration
+# This YAML file defines a parameter sweep for systematic research
+
+# Unique sweep identifier (auto-generated if not specified)
+sweep_id: memory_corruption_sweep_001
+
+# Base experiment configuration to sweep from
+base_config: experiments/examples/unstable_memory_moderate.json
+
+# Description of this sweep
+description: |
+  Systematic sweep of memory corruption rates to find tipping points
+  for self-model coherence and identity stability.
+
+# Parameters to sweep (Cartesian product)
+sweep:
+  # Intervention parameter: corruption rate
+  interventions.0.parameters.corruption_rate: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+
+  # Experiment duration
+  max_cycles: [15, 20, 25]
+
+  # Self-report frequency (check every N cycles)
+  self_report_schedule.every_n_cycles: [2, 3, 5]
+
+# Number of parallel experiments (set to 1 for sequential)
+parallel: 3
+
+# Jetson optimization (resource management for Jetson Orin)
+jetson_optimized: true
+
+# Timeout per experiment (seconds, null = no timeout)
+timeout: 3600  # 1 hour max per experiment
+
+# Database to store results
+db_path: logs/experiments.db
+
+# Output directory for sweep results
+output_dir: logs/sweeps
+
+# Resume interrupted sweep
+resume: false
+
+# Maximum retry attempts for failed experiments
+max_retries: 2
+
+# Tags for organizing sweeps
+tags:
+  - memory_corruption
+  - parameter_sweep
+  - systematic_research
+  - season_3
+
+# Expected total: 11 corruption rates × 3 max_cycles × 3 report frequencies = 99 experiments
+# Estimated time: ~99 experiments × ~300s per experiment / 3 parallel = ~9 hours

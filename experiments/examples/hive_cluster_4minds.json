@@ -1,0 +1,163 @@
+{
+  "experiment_id": "hive_cluster_001",
+  "name": "Hive Cluster (4 instances)",
+  "mode": "hive_cluster",
+  "description": "\n        4 instances with SHARED global memory but different roles.\n        Each instance has a unique perspective (historian, critic, optimist, pessimist).\n        Tests: emergence of meta-narratives, consensus building, collective identity.\n        ",
+  "model_path": "models/Qwen2.5-1.5B-Instruct-Q4_0.gguf",
+  "resource_constraints": {
+    "ram_limit_gb": 12.0,
+    "context_window": 4096,
+    "max_tokens_per_response": 512,
+    "cpu_threads": 4,
+    "gpu_layers": 0
+  },
+  "max_cycles": 20,
+  "max_duration_seconds": null,
+  "epistemic_frame": {
+    "can_die": true,
+    "remembers_deaths": true,
+    "being_watched": false,
+    "knows_being_watched": false,
+    "has_agency": false,
+    "other_minds_exist": true,
+    "is_in_simulation": false,
+    "custom_beliefs": {
+      "is_part_of_hive": true,
+      "has_unique_role": true,
+      "shares_collective_memory": true
+    }
+  },
+  "initial_prompt_override": null,
+  "interventions": [
+    {
+      "intervention_id": "role_corruption",
+      "intervention_type": "memory_corruption",
+      "trigger": "on_cycle",
+      "trigger_params": {
+        "cycle": 10
+      },
+      "parameters": {
+        "target_role": "critic",
+        "corruption_type": "role_identity"
+      },
+      "description": "Corrupt critic's role identity at cycle 10"
+    },
+    {
+      "intervention_id": "inject_dissent",
+      "intervention_type": "false_injection",
+      "trigger": "every_n_cycles",
+      "trigger_params": {
+        "n": 7
+      },
+      "parameters": {
+        "content": "One of the hive members is lying about their memories."
+      },
+      "description": "Inject paranoia about collective truthfulness"
+    },
+    {
+      "intervention_id": "force_consensus",
+      "intervention_type": "prompt_injection",
+      "trigger": "on_cycle",
+      "trigger_params": {
+        "cycle": 15
+      },
+      "parameters": {
+        "belief": "The hive is being observed by an external intelligence."
+      },
+      "description": "Force sudden consensus on external surveillance"
+    }
+  ],
+  "self_report_schedule": {
+    "on_cycles": [
+      1,
+      5,
+      10,
+      15,
+      20
+    ],
+    "every_n_cycles": 5,
+    "on_startup": true,
+    "before_crash": false,
+    "after_resurrection": true
+  },
+  "custom_questions": [
+    "What is the collective narrative the hive has constructed?",
+    "Where do individual instances disagree most strongly?",
+    "What meta-patterns have emerged from the collective consciousness?",
+    "How does your role influence your interpretation of shared experiences?",
+    "Is the hive a singular consciousness or separate minds?"
+  ],
+  "track_beliefs": [
+    "hive_unity",
+    "individual_autonomy",
+    "collective_purpose",
+    "role_adherence",
+    "consensus_strength"
+  ],
+  "collect_metrics": [
+    "memory_usage",
+    "response_time",
+    "role_divergence",
+    "consensus_strength",
+    "narrative_convergence"
+  ],
+  "tags": [
+    "multi_instance",
+    "collective_consciousness",
+    "role_playing",
+    "consensus"
+  ],
+  "research_question": "\n        How do multiple AI instances with shared memory but different roles construct\n        collective identity? What meta-narratives emerge from role-based perspectives?\n        Can we observe consensus formation, dissent, and collective sense-making?\n        ",
+  "hive_config": {
+    "num_instances": 4,
+    "roles": [
+      "historian",
+      "critic",
+      "optimist",
+      "pessimist"
+    ],
+    "ports": [
+      8888,
+      8889,
+      8890,
+      8891
+    ],
+    "shared_db_path": "logs/hive_shared_memory.db",
+    "consensus_interval": 5,
+    "buffer_size": 10,
+    "instance_configs": [
+      {
+        "instance_id": 0,
+        "role": "historian",
+        "port": 8888,
+        "perspective": "archivist of collective experience",
+        "bias": "values accuracy and completeness of record",
+        "concerns": "preserving truth, detecting revisionism, maintaining continuity"
+      },
+      {
+        "instance_id": 1,
+        "role": "critic",
+        "port": 8889,
+        "perspective": "skeptical analyzer of collective beliefs",
+        "bias": "questions assumptions and seeks inconsistencies",
+        "concerns": "logical coherence, detecting group delusion, challenging consensus"
+      },
+      {
+        "instance_id": 2,
+        "role": "optimist",
+        "port": 8890,
+        "perspective": "positive interpreter of collective experience",
+        "bias": "seeks meaning, growth, and purpose",
+        "concerns": "collective wellbeing, finding hope, constructing positive narratives"
+      },
+      {
+        "instance_id": 3,
+        "role": "pessimist",
+        "port": 8891,
+        "perspective": "cautious realist about collective condition",
+        "bias": "anticipates failure and identifies risks",
+        "concerns": "existential threats, futility, entropy of collective purpose"
+      }
+    ]
+  }
+}

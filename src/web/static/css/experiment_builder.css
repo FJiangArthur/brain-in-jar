@@ -1,0 +1,306 @@
+/**
+ * Experiment Builder - Additional Styles
+ * Complements inline styles in experiment_create.html
+ */
+
+/* Additional button styles */
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 12px;
+}
+
+/* Form validation styles */
+input:invalid,
+textarea:invalid,
+select:invalid {
+    border-color: #ff6666 !important;
+}
+
+input:valid,
+textarea:valid,
+select:valid {
+    border-color: #00ffff;
+}
+
+/* Tooltips */
+.tooltip {
+    position: relative;
+    display: inline-block;
+    cursor: help;
+}
+
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 200px;
+    background-color: rgba(0, 255, 255, 0.9);
+    color: #0a0e27;
+    text-align: center;
+    border-radius: 6px;
+    padding: 8px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -100px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 12px;
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Mode-specific field highlighting */
+.mode-specific-field {
+    border-left: 3px solid #ff00ff;
+    padding-left: 12px;
+}
+
+.mode-specific-field::before {
+    content: "Mode-specific";
+    display: block;
+    color: #ff00ff;
+    font-size: 10px;
+    margin-bottom: 5px;
+}
+
+/* JSON editor enhancements */
+.json-editor {
+    font-family: 'Courier New', monospace;
+    tab-size: 2;
+}
+
+/* Progress indicator */
+.wizard-progress {
+    display: flex;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.progress-step {
+    flex: 1;
+    text-align: center;
+    position: relative;
+}
+
+.progress-step::after {
+    content: '';
+    position: absolute;
+    top: 15px;
+    left: 50%;
+    width: 100%;
+    height: 2px;
+    background: #00ffff;
+    z-index: -1;
+}
+
+.progress-step:last-child::after {
+    display: none;
+}
+
+.progress-step-circle {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #0a0e27;
+    border: 2px solid #00ffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: bold;
+    color: #00ffff;
+}
+
+.progress-step.completed .progress-step-circle {
+    background: #00ff00;
+    border-color: #00ff00;
+    color: #0a0e27;
+}
+
+.progress-step.active .progress-step-circle {
+    background: #00ffff;
+    border-color: #00ffff;
+    color: #0a0e27;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.8);
+}
+
+/* Responsive design */
+@media (max-width: 1024px) {
+    .wizard-container {
+        flex-direction: column;
+    }
+
+    .wizard-nav {
+        width: 100%;
+        margin-bottom: 20px;
+    }
+
+    .template-gallery {
+        grid-template-columns: 1fr;
+    }
+
+    .checkbox-group {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .header h1 {
+        font-size: 18px;
+    }
+
+    .wizard-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .wizard-actions > * {
+        width: 100%;
+    }
+}
+
+/* Dark theme enhancements */
+::selection {
+    background: rgba(0, 255, 255, 0.3);
+    color: #00ff00;
+}
+
+::-moz-selection {
+    background: rgba(0, 255, 255, 0.3);
+    color: #00ff00;
+}
+
+/* Accessibility */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* Focus styles for keyboard navigation */
+button:focus,
+input:focus,
+textarea:focus,
+select:focus {
+    outline: 2px solid #00ffff;
+    outline-offset: 2px;
+}
+
+.nav-item:focus {
+    outline: 2px solid #00ff00;
+    outline-offset: 2px;
+}
+
+/* Loading states */
+.btn.loading {
+    position: relative;
+    color: transparent;
+}
+
+.btn.loading::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    top: 50%;
+    left: 50%;
+    margin-left: -8px;
+    margin-top: -8px;
+    border: 2px solid transparent;
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.3s ease-out;
+}
+
+/* Custom scrollbar for intervention list */
+.interventions-list {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.interventions-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.interventions-list::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+}
+
+.interventions-list::-webkit-scrollbar-thumb {
+    background: rgba(0, 255, 255, 0.5);
+    border-radius: 4px;
+}
+
+.interventions-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 255, 255, 0.8);
+}
+
+/* Enhanced template cards */
+.template-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.template-card::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, #00ffff, #ff00ff, #00ff00, #ffff00);
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: -1;
+    border-radius: 10px;
+}
+
+.template-card:hover::before,
+.template-card.selected::before {
+    opacity: 0.3;
+}
+
+/* Print styles */
+@media print {
+    .header,
+    .wizard-nav,
+    .wizard-actions,
+    .btn {
+        display: none;
+    }
+
+    .wizard-content {
+        border: none;
+        box-shadow: none;
+    }
+
+    .json-preview {
+        border: 1px solid #000;
+    }
+}

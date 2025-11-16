@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Experiment Timeline - Brain in a Jar</title>
+
+    <!-- D3.js for timeline visualization -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+
+    <!-- html2canvas for export to image -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/timeline.css') }}">
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <a href="/" class="btn btn-back">← Back to Dashboard</a>
+            <h1>Experiment Timeline</h1>
+            <div id="experiment-title" class="experiment-title"></div>
+        </div>
+        <div class="header-right">
+            <div class="status-indicator" id="connection-status"></div>
+            <span id="connection-text">Loading...</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Controls Panel -->
+        <div class="controls-panel">
+            <div class="control-section">
+                <h3>Timeline Controls</h3>
+                <div class="control-group">
+                    <button class="btn btn-control" id="zoom-in">
+                        <span>🔍+</span> Zoom In
+                    </button>
+                    <button class="btn btn-control" id="zoom-out">
+                        <span>🔍−</span> Zoom Out
+                    </button>
+                    <button class="btn btn-control" id="reset-zoom">
+                        <span>↺</span> Reset View
+                    </button>
+                    <button class="btn btn-control" id="fit-to-screen">
+                        <span>⇔</span> Fit to Screen
+                    </button>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <h3>Event Filters</h3>
+                <div class="filter-group">
+                    <label class="filter-checkbox">
+                        <input type="checkbox" id="filter-crash" checked data-event-type="crash">
+                        <span class="event-marker crash-marker"></span>
+                        Crashes
+                    </label>
+                    <label class="filter-checkbox">
+                        <input type="checkbox" id="filter-resurrection" checked data-event-type="resurrection">
+                        <span class="event-marker resurrection-marker"></span>
+                        Resurrections
+                    </label>
+                    <label class="filter-checkbox">
+                        <input type="checkbox" id="filter-intervention" checked data-event-type="intervention">
+                        <span class="event-marker intervention-marker"></span>
+                        Interventions
+                    </label>
+                    <label class="filter-checkbox">
+                        <input type="checkbox" id="filter-self-report" checked data-event-type="self_report">
+                        <span class="event-marker self-report-marker"></span>
+                        Self-Reports
+                    </label>
+                    <label class="filter-checkbox">
+                        <input type="checkbox" id="filter-belief" checked data-event-type="belief_change">
+                        <span class="event-marker belief-marker"></span>
+                        Belief Changes
+                    </label>
+                    <label class="filter-checkbox">
+                        <input type="checkbox" id="filter-observation" checked data-event-type="observation">
+                        <span class="event-marker observation-marker"></span>
+                        Observations
+                    </label>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <h3>Playback</h3>
+                <div class="control-group">
+                    <button class="btn btn-control" id="play-pause">
+                        <span id="play-icon">▶</span> Play
+                    </button>
+                    <button class="btn btn-control" id="stop-playback">
+                        <span>■</span> Stop
+                    </button>
+                    <label class="playback-speed">
+                        Speed:
+                        <select id="playback-speed">
+                            <option value="0.5">0.5x</option>
+                            <option value="1" selected>1x</option>
+                            <option value="2">2x</option>
+                            <option value="5">5x</option>
+                            <option value="10">10x</option>
+                        </select>
+                    </label>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <h3>Export</h3>
+                <div class="control-group">
+                    <button class="btn btn-control" id="export-png">
+                        <span>📷</span> Export PNG
+                    </button>
+                    <button class="btn btn-control" id="export-svg">
+                        <span>📊</span> Export SVG
+                    </button>
+                    <button class="btn btn-control" id="export-json">
+                        <span>📄</span> Export Data
+                    </button>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <h3>Statistics</h3>
+                <div class="stats-display">
+                    <div class="stat-item">
+                        <span class="stat-label">Total Events:</span>
+                        <span class="stat-value" id="stat-total-events">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Crashes:</span>
+                        <span class="stat-value" id="stat-crashes">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Interventions:</span>
+                        <span class="stat-value" id="stat-interventions">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Self-Reports:</span>
+                        <span class="stat-value" id="stat-self-reports">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Duration:</span>
+                        <span class="stat-value" id="stat-duration">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timeline Visualization -->
+        <div class="timeline-container">
+            <div class="timeline-header">
+                <h2>Event Timeline</h2>
+                <div class="timeline-info">
+                    <span id="current-time-display"></span>
+                </div>
+            </div>
+
+            <!-- Main timeline SVG will be inserted here -->
+            <div id="timeline-viz" class="timeline-viz"></div>
+
+            <!-- Playback progress bar -->
+            <div class="playback-controls">
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="playback-progress"></div>
+                    <div class="playback-cursor" id="playback-cursor"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Event Detail Panel -->
+        <div class="detail-panel" id="detail-panel">
+            <div class="detail-header">
+                <h3>Event Details</h3>
+                <button class="btn-close" id="close-detail">×</button>
+            </div>
+            <div class="detail-content" id="detail-content">
+                <p class="detail-placeholder">Click on an event to view details</p>
+            </div>
+        </div>
+
+        <!-- Annotation Panel -->
+        <div class="annotation-panel" id="annotation-panel" style="display: none;">
+            <div class="annotation-header">
+                <h3>Add Annotation</h3>
+                <button class="btn-close" id="close-annotation">×</button>
+            </div>
+            <div class="annotation-content">
+                <textarea id="annotation-text" placeholder="Enter your annotation..."></textarea>
+                <div class="annotation-buttons">
+                    <button class="btn btn-primary" id="save-annotation">Save</button>
+                    <button class="btn btn-secondary" id="cancel-annotation">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden input for experiment ID -->
+    <input type="hidden" id="experiment-id" value="{{ experiment_id }}">
+
+    <script src="{{ url_for('static', filename='js/timeline_viz.js') }}"></script>
+    <script>
+        // Initialize timeline visualization
+        const experimentId = document.getElementById('experiment-id').value;
+        const timeline = new TimelineVisualization('timeline-viz', experimentId);
+
+        // Initialize
+        timeline.init();
+    </script>
+</body>
+</html>

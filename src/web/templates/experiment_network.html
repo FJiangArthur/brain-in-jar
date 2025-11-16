@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Graph - Brain in a Jar</title>
+    <link rel="stylesheet" href="/static/css/experiment_dashboard.css">
+    <style>
+        .network-container {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+            height: calc(100vh - 120px);
+        }
+
+        .network-view {
+            background: #1a1a1a;
+            border: 2px solid #00ff41;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #network-canvas {
+            width: 100%;
+            height: 100%;
+            cursor: grab;
+        }
+
+        #network-canvas:active {
+            cursor: grabbing;
+        }
+
+        .controls-panel {
+            background: #1a1a1a;
+            border: 2px solid #00ff41;
+            border-radius: 8px;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .control-section {
+            margin-bottom: 25px;
+        }
+
+        .control-section h3 {
+            color: #00ff41;
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            border-bottom: 1px solid #00ff41;
+            padding-bottom: 5px;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-group label {
+            display: block;
+            color: #888;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+            height: 4px;
+            background: #333;
+            outline: none;
+            border-radius: 2px;
+        }
+
+        .control-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #00ff41;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+
+        .control-group input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: #00ff41;
+            cursor: pointer;
+            border-radius: 50%;
+            border: none;
+        }
+
+        .control-group select {
+            width: 100%;
+            padding: 8px;
+            background: #2a2a2a;
+            border: 1px solid #00ff41;
+            color: #00ff41;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .time-slider-container {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .time-slider {
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        .time-display {
+            color: #00ff41;
+            font-size: 14px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .playback-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .playback-btn {
+            background: #00ff41;
+            color: #000;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .playback-btn:hover {
+            background: #00dd35;
+        }
+
+        .playback-btn:disabled {
+            background: #555;
+            color: #888;
+            cursor: not-allowed;
+        }
+
+        .filter-options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .filter-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-checkbox input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #00ff41;
+        }
+
+        .filter-checkbox label {
+            color: #ccc;
+            font-size: 12px;
+            margin: 0;
+        }
+
+        .metrics-display {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .metric-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+
+        .metric-label {
+            color: #888;
+        }
+
+        .metric-value {
+            color: #00ff41;
+            font-weight: bold;
+        }
+
+        .node-details {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .node-details.active {
+            display: block;
+        }
+
+        .node-details h4 {
+            color: #00ff41;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 11px;
+        }
+
+        .detail-label {
+            color: #888;
+        }
+
+        .detail-value {
+            color: #ccc;
+        }
+
+        .legend {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            font-size: 11px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #00ff41;
+        }
+
+        .legend-label {
+            color: #ccc;
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #00ff41;
+            font-size: 18px;
+            z-index: 1000;
+        }
+
+        .loading-overlay.hidden {
+            display: none;
+        }
+
+        .error-message {
+            background: #ff4444;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px;
+            display: none;
+        }
+
+        .error-message.active {
+            display: block;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .export-btn {
+            background: #00ff41;
+            color: #000;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .export-btn:hover {
+            background: #00dd35;
+        }
+
+        @media (max-width: 768px) {
+            .network-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: 1fr auto;
+            }
+
+            .controls-panel {
+                max-height: 400px;
+            }
+        }
+    </style>
+    <!-- Cytoscape.js for network visualization -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.26.0/cytoscape.min.js"></script>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1 class="glitch">Network Graph: <span id="experiment-title">Loading...</span></h1>
+        <div class="header-controls">
+            <button id="export-png" class="export-btn">Export PNG</button>
+            <button id="export-json" class="export-btn">Export JSON</button>
+            <a href="/" class="btn">Dashboard</a>
+            <a href="/logout" class="btn btn-danger">Logout</a>
+        </div>
+    </div>
+
+    <!-- Error Message -->
+    <div class="error-message" id="error-message"></div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <div class="network-container">
+            <!-- Network Visualization -->
+            <div class="network-view">
+                <div class="loading-overlay" id="loading-overlay">
+                    Loading network data...
+                </div>
+                <div id="network-canvas"></div>
+            </div>
+
+            <!-- Controls Panel -->
+            <div class="controls-panel">
+                <!-- Time Slider -->
+                <div class="time-slider-container">
+                    <div class="time-display" id="time-display">Cycle 0</div>
+                    <input type="range" class="time-slider" id="time-slider" min="0" max="100" value="100">
+                    <div class="playback-controls">
+                        <button class="playback-btn" id="play-btn">Play</button>
+                        <button class="playback-btn" id="pause-btn" disabled>Pause</button>
+                        <button class="playback-btn" id="reset-btn">Reset</button>
+                    </div>
+                </div>
+
+                <!-- Visualization Controls -->
+                <div class="control-section">
+                    <h3>Visualization</h3>
+
+                    <div class="control-group">
+                        <label>Layout Algorithm</label>
+                        <select id="layout-select">
+                            <option value="cose">Force-Directed (COSE)</option>
+                            <option value="circle">Circle</option>
+                            <option value="grid">Grid</option>
+                            <option value="concentric">Concentric</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Node Size: <span id="node-size-value">Activity</span></label>
+                        <select id="node-size-by">
+                            <option value="activity">Activity Level</option>
+                            <option value="messages">Message Count</option>
+                            <option value="centrality">Centrality</option>
+                            <option value="fixed">Fixed Size</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Node Color: <span id="node-color-value">Role</span></label>
+                        <select id="node-color-by">
+                            <option value="role">Role</option>
+                            <option value="belief">Belief State</option>
+                            <option value="activity">Activity Level</option>
+                            <option value="trust">Trust Level</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Edge Thickness: <span id="edge-thickness-value">Weight</span></label>
+                        <select id="edge-thickness-by">
+                            <option value="weight">Message Count</option>
+                            <option value="trust">Trust Level</option>
+                            <option value="influence">Influence</option>
+                            <option value="fixed">Fixed</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="control-section">
+                    <h3>Filters</h3>
+                    <div class="filter-options">
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="show-labels" checked>
+                            <label for="show-labels">Show Labels</label>
+                        </div>
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="show-edges" checked>
+                            <label for="show-edges">Show Edges</label>
+                        </div>
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="show-edge-labels" checked>
+                            <label for="show-edge-labels">Show Edge Labels</label>
+                        </div>
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="show-corrupted">
+                            <label for="show-corrupted">Highlight Corrupted</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Metrics -->
+                <div class="control-section">
+                    <h3>Network Metrics</h3>
+                    <div class="metrics-display" id="metrics-display">
+                        <div class="metric-item">
+                            <span class="metric-label">Nodes:</span>
+                            <span class="metric-value" id="metric-nodes">0</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Edges:</span>
+                            <span class="metric-value" id="metric-edges">0</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Density:</span>
+                            <span class="metric-value" id="metric-density">0.00</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Messages:</span>
+                            <span class="metric-value" id="metric-messages">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Legend -->
+                <div class="control-section">
+                    <h3>Legend</h3>
+                    <div class="legend" id="legend-container">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+
+                <!-- Node Details -->
+                <div class="node-details" id="node-details">
+                    <h4 id="node-details-title">Node Details</h4>
+                    <div id="node-details-content">
+                        <!-- Dynamically populated when node is clicked -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Network Graph JavaScript -->
+    <script src="/static/js/network_graph.js"></script>
+
+    <script>
+        // Initialize network graph on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get experiment ID from URL
+            const pathParts = window.location.pathname.split('/');
+            const experimentId = pathParts[pathParts.indexOf('experiment') + 1];
+
+            if (experimentId) {
+                initializeNetworkGraph(experimentId);
+            } else {
+                showError('No experiment ID provided');
+            }
+        });
+
+        function showError(message) {
+            const errorEl = document.getElementById('error-message');
+            errorEl.textContent = message;
+            errorEl.classList.add('active');
+            document.getElementById('loading-overlay').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

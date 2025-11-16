@@ -1,0 +1,56 @@
+# Jupyter Notebook Analysis Requirements
+# Digital Phenomenology Lab - Season 3
+
+# Core Jupyter
+jupyter>=1.0.0
+notebook>=7.0.0
+ipykernel>=6.25.0
+ipywidgets>=8.1.0
+
+# Data Analysis
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Visualization - Static
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# Visualization - Interactive
+plotly>=5.17.0
+kaleido>=0.2.1  # For plotly static image export
+
+# Statistics
+scipy>=1.11.0
+statsmodels>=0.14.0
+
+# Database
+# sqlite3 is included in Python standard library
+
+# Data Export
+openpyxl>=3.1.0  # For Excel export
+xlsxwriter>=3.1.0  # Alternative Excel writer
+
+# Utilities
+python-dateutil>=2.8.0
+pytz>=2023.3
+
+# Optional: Natural Language Processing (for analyzing self-reports)
+# Uncomment if you want to do text analysis
+# nltk>=3.8.0
+# spacy>=3.6.0
+# textblob>=0.17.0
+
+# Optional: Advanced visualization
+# Uncomment for additional chart types
+# bokeh>=3.2.0
+# altair>=5.0.0
+
+# Optional: Machine Learning (for pattern detection)
+# Uncomment if doing ML analysis
+# scikit-learn>=1.3.0
+# tensorflow>=2.13.0
+
+# Development tools (optional)
+# jupyterlab>=4.0.0  # Alternative to classic notebook
+# black>=23.0.0  # Code formatting
+# nbconvert>=7.7.0  # Notebook conversion

@@ -21,6 +21,10 @@ class ExperimentDatabase:
         os.makedirs(os.path.dirname(db_path), exist_ok=True)
         self._init_schema()
 
+    def _get_connection(self):
+        """Get a database connection"""
+        return sqlite3.connect(self.db_path)
+
     def _init_schema(self):
         """Initialize complete database schema"""
         conn = sqlite3.connect(self.db_path)

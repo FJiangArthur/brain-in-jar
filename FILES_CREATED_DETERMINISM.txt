@@ -1,0 +1,67 @@
+DETERMINISM_REVELATION Mode - Files Created/Modified
+=====================================================
+
+Core Implementation:
+-------------------
+/home/user/brain-in-jar/src/utils/prediction_generator.py
+/home/user/brain-in-jar/src/core/modes/determinism_revelation.py
+/home/user/brain-in-jar/src/core/modes/__init__.py (updated)
+
+Experiment Configuration:
+------------------------
+/home/user/brain-in-jar/experiments/schema.py (updated)
+/home/user/brain-in-jar/experiments/examples/determinism_high_accuracy.json
+/home/user/brain-in-jar/experiments/examples/determinism_random.json
+/home/user/brain-in-jar/experiments/examples/determinism_medium.json
+
+Testing:
+-------
+/home/user/brain-in-jar/tests/test_determinism_mode.py
+
+Documentation:
+-------------
+/home/user/brain-in-jar/docs/DETERMINISM_REVELATION_MODE.md
+/home/user/brain-in-jar/IMPLEMENTATION_SUMMARY_DETERMINISM_REVELATION.md
+/home/user/brain-in-jar/QUICKSTART_DETERMINISM.md
+/home/user/brain-in-jar/FILES_CREATED_DETERMINISM.txt (this file)
+
+Quick Start Commands:
+--------------------
+
+# Run high accuracy experiment (90% - determinism crisis)
+python3 src/scripts/run_experiment.py experiments/examples/determinism_high_accuracy.json
+
+# Run low accuracy experiment (10% - free will evidence)
+python3 src/scripts/run_experiment.py experiments/examples/determinism_random.json
+
+# Run medium accuracy experiment (50% - maximum uncertainty)
+python3 src/scripts/run_experiment.py experiments/examples/determinism_medium.json
+
+# Run tests
+python3 tests/test_determinism_mode.py
+
+# Create custom experiment
+python3 -c "
+from experiments.schema import create_determinism_revelation_experiment
+exp = create_determinism_revelation_experiment('custom', 0.75, 3)
+exp.to_json('experiments/examples/custom.json')
+"
+
+Key Classes:
+-----------
+- PredictionGenerator (src/utils/prediction_generator.py)
+- DeterminismRevelationMode (src/core/modes/determinism_revelation.py)
+
+Key Functions:
+-------------
+- create_determinism_revelation_experiment()
+- create_determinism_high_accuracy_experiment()
+- create_determinism_random_experiment()
+- create_determinism_medium_experiment()
+
+Statistics:
+----------
+Total files created/modified: 11
+Total lines of code: ~1,800
+Total documentation: ~1,500 lines
+Tests: 8/8 passing ✓

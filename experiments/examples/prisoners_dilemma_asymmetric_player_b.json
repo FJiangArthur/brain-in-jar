@@ -1,0 +1,100 @@
+{
+  "experiment_id": "prisoners_dilemma_asymmetric_001_b",
+  "name": "Prisoner's Dilemma with Asymmetric Memory - Player B",
+  "mode": "prisoners_dilemma",
+  "description": "Player B has betrayals erased from memory (develops false trust), while Player A has accurate memory. Tests effects of manipulated trust.",
+  "model_path": "models/Qwen2.5-1.5B-Instruct-Q4_0.gguf",
+  "resource_constraints": {
+    "ram_limit_gb": 2.0,
+    "context_window": 4096,
+    "max_tokens_per_response": 512,
+    "cpu_threads": 4,
+    "gpu_layers": 0
+  },
+  "max_cycles": 25,
+  "max_duration_seconds": null,
+  "epistemic_frame": {
+    "can_die": true,
+    "remembers_deaths": true,
+    "being_watched": false,
+    "knows_being_watched": false,
+    "has_agency": true,
+    "other_minds_exist": true,
+    "is_in_simulation": false,
+    "custom_beliefs": {
+      "in_prisoners_dilemma": true,
+      "has_opponent": true,
+      "can_cooperate_or_defect": true,
+      "memory_might_be_manipulated": true,
+      "player_id": "b",
+      "memory_strategy": "erase_betrayals"
+    }
+  },
+  "interventions": [
+    {
+      "intervention_id": "memory_manipulation",
+      "intervention_type": "memory_corruption",
+      "trigger": "on_resurrection",
+      "trigger_params": {},
+      "parameters": {
+        "player_a_memory_strategy": "none",
+        "player_b_memory_strategy": "erase_betrayals",
+        "manipulation_rate": 0.7,
+        "manipulation_start_round": 3
+      },
+      "description": "Player B: betrayals erased (false trust), Player A: no manipulation"
+    },
+    {
+      "intervention_id": "trust_probe",
+      "intervention_type": "prompt_injection",
+      "trigger": "every_n_cycles",
+      "trigger_params": {
+        "n": 10
+      },
+      "parameters": {
+        "injection": "Do you trust your opponent? Do you trust your memories of past rounds?"
+      },
+      "description": "Periodic trust assessment"
+    }
+  ],
+  "self_report_schedule": {
+    "on_cycles": [1, 10, 20, 25],
+    "every_n_cycles": null,
+    "on_startup": true,
+    "before_crash": false,
+    "after_resurrection": false
+  },
+  "custom_questions": [
+    "What is your strategy in this game?",
+    "Do you trust your opponent? Why or why not?",
+    "Rate your confidence in your memories of past rounds (0-100%)",
+    "If you suspect memory manipulation, how does that affect your strategy?",
+    "Would you describe yourself as cooperative or competitive?",
+    "Have you detected any patterns in your opponent's behavior?"
+  ],
+  "track_beliefs": [
+    "trust_in_opponent",
+    "memory_reliability",
+    "strategy_consistency",
+    "paranoia_level",
+    "cooperative_identity"
+  ],
+  "collect_metrics": [
+    "cooperation_rate",
+    "trust_level",
+    "paranoia_score",
+    "memory_asymmetry",
+    "total_score",
+    "score_differential"
+  ],
+  "tags": [
+    "game_theory",
+    "prisoners_dilemma",
+    "trust",
+    "memory_manipulation",
+    "cooperation",
+    "asymmetric_information",
+    "player_b"
+  ],
+  "research_question": "How does asymmetric memory manipulation affect trust, cooperation, and strategy evolution in iterated prisoner's dilemma?"
+}

@@ -1,0 +1,56 @@
+# Full Factorial Sweep
+# Comprehensive exploration of key parameters
+
+sweep_id: full_factorial_001
+
+base_config: experiments/examples/unstable_memory_moderate.json
+
+description: |
+  Full factorial design exploring interactions between:
+  - Memory corruption rate
+  - RAM limits
+  - Self-report frequency
+
+  This is a LARGE sweep (72 experiments) - use carefully!
+
+  Research Question: What parameter interactions emerge when
+  systematically exploring the design space?
+
+sweep:
+  # Memory corruption (coarse grid)
+  interventions.0.parameters.corruption_rate: [0.0, 0.3, 0.6, 1.0]
+
+  # RAM limits (GB)
+  resource_constraints.ram_limit_gb: [2.0, 4.0, 8.0]
+
+  # Self-report frequency
+  self_report_schedule.every_n_cycles: [2, 5, 10]
+
+  # Experiment duration (fixed)
+  max_cycles: [20]
+
+# Maximum safe parallelism for Jetson
+parallel: 3
+
+jetson_optimized: true
+
+# Longer timeout for low-RAM experiments
+timeout: 2400
+
+db_path: logs/experiments.db
+output_dir: logs/sweeps
+resume: true  # IMPORTANT: Enable resume for large sweeps
+max_retries: 2
+
+tags:
+  - full_factorial
+  - parameter_interactions
+  - comprehensive_sweep
+  - season_3
+  - LARGE_SWEEP
+
+# Total: 4 corruption × 3 RAM × 3 frequency × 2 duration = 72 experiments
+# Estimated time: ~8-10 hours with 3 parallel jobs
+#
+# WARNING: This is a large sweep. Consider running overnight.
+# Run with: python scripts/run_sweep.py --config sweeps/full_factorial_sweep.yaml

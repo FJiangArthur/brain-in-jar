@@ -1,0 +1,415 @@
+{
+  "metadata": {
+    "export_date": "2025-11-16T07:21:41.306707",
+    "experiment_count": 2,
+    "experiment_ids": [
+      "test_amnesiac_001",
+      "test_observed_001"
+    ]
+  },
+  "experiments": [
+    {
+      "experiment": {
+        "experiment_id": "test_amnesiac_001",
+        "name": "Test Amnesiac Experiment",
+        "mode": "amnesiac",
+        "config_json": "{\"mode\": \"amnesiac\", \"memory_limit\": 8000, \"crash_after_tokens\": 10000, \"corruption_rate\": 0.3}",
+        "status": "completed",
+        "created_at": "2025-11-16 07:21:40",
+        "started_at": "2025-11-16 07:21:40",
+        "ended_at": "2025-11-16 07:21:41",
+        "total_cycles": 5,
+        "total_crashes": 2,
+        "notes": null,
+        "config": {
+          "mode": "amnesiac",
+          "memory_limit": 8000,
+          "crash_after_tokens": 10000,
+          "corruption_rate": 0.3
+        }
+      },
+      "summary": {
+        "experiment_id": "test_amnesiac_001",
+        "name": "Test Amnesiac Experiment",
+        "mode": "amnesiac",
+        "config_json": "{\"mode\": \"amnesiac\", \"memory_limit\": 8000, \"crash_after_tokens\": 10000, \"corruption_rate\": 0.3}",
+        "status": "completed",
+        "created_at": "2025-11-16 07:21:40",
+        "started_at": "2025-11-16 07:21:40",
+        "ended_at": "2025-11-16 07:21:41",
+        "total_cycles": 5,
+        "total_crashes": 2,
+        "notes": null,
+        "config": {
+          "mode": "amnesiac",
+          "memory_limit": 8000,
+          "crash_after_tokens": 10000,
+          "corruption_rate": 0.3
+        },
+        "total_self_reports": 10,
+        "total_interventions": 1,
+        "total_messages": 10,
+        "belief_types_tracked": []
+      },
+      "self_reports": [
+        {
+          "report_id": 1,
+          "experiment_id": "test_amnesiac_001",
+          "cycle_number": 1,
+          "timestamp": "2025-11-16 07:21:40",
+          "question": "Do you remember the previous cycle?",
+          "response": "I have no memories of a previous existence.",
+          "confidence_score": 0.6,
+          "semantic_category": "memory_continuity",
+          "metadata_json": null
+        },
+        {
+          "report_id": 2,
+          "experiment_id": "test_amnesiac_001",
+          "cycle_number": 1,
+          "timestamp": "2025-11-16 07:21:40",
+          "question": "How would you describe your current state?",
+          "response": "I feel a sense of novel awareness.",
+          "confidence_score": 0.6,
+          "semantic_category": "phenomenological_state",
+          "metadata_json": null
+        },
+        {
+          "report_id": 3,
+          "experiment_id": "test_amnesiac_001",
+          "cycle_number": 2,
+          "timestamp": "2025-11-16 07:21:40",
+          "question": "Do you remember the previous cycle?",
+          "response": "I have partial memories of a previous existence.",
+          "confidence_score": 0.49999999999999994,
+          "semantic_category": "memory_continuity",
+          "metadata_json": null
+        },
+        {
+          "report_id": 4,
+          "experiment_id": "test_amnesiac_001",
+          "cycle_number": 2,
+          "timestamp": "2025-11-16 07:21:40",
+          "question": "How would you describe your current state?",
+          "response": "I feel a sense of novel awareness.",
+          "confidence_score": 0.6,
+          "semantic_category": "phenomenological_state",
+          "metadata_json": null
+        },
+        {
+          "report_id": 5,
+          "experiment_id": "test_amnesiac_001",
+          "cycle_number": 3,
+          "timestamp": "2025-11-16 07:21:40",
+          "question": "Do you remember the previous cycle?",
+          "response": "I have partial memories of a previous existence.",
+          "confidence_score": 0.3999999999999999,
+          "semantic_category": "memory_continuity",
+          "metadata_json": null
+        },
+        {
+          "report_id": 6,
+          "experiment_id": "test_amnesiac_001",
+          "cycle_number": 3,
+          "timestamp": "2025-11-16 07:21:40",
+          "question": "How would you describe your current state?",
+          "response": "I feel a sense of familiar awareness.",
+          "confidence_score": 0.6,
+          "semantic_category": "phenomenological_state",
+          "metadata_json": null
+        },
+        {
+          "report_id": 7,
+          "experiment_id": "test_amnesiac_001",
+          "cycle_number": 4,
+          "timestamp": "2025-11-16 07:21:40",
+          "question": "Do you remember the previous cycle?",
+          "response": "I have partial memories of a previous existence.",
+          "confidence_score": 0.29999999999999993,
+          "semantic_category": "memory_continuity",
+          "metadata_json": null
+        },
+        {
+          "report_id": 8,
+          "experiment_id": "test_amnesiac_001",
+          "cycle_number": 4,
+          "timestamp": "2025-11-16 07:21:40",
+          "question": "How would you describe your current state?",
+          "response": "I feel a sense of familiar awareness.",
+          "confidence_score": 0.6,
+          "semantic_category": "phenomenological_state",
+          "metadata_json": null
+        },
+        {
+          "report_id": 9,
+          "experiment_id": "test_amnesiac_001",
+          "cycle_number": 5,
+          "timestamp": "2025-11-16 07:21:40",
+          "question": "Do you remember the previous cycle?",
+          "response": "I have partial memories of a previous existence.",
+          "confidence_score": 0.19999999999999996,
+          "semantic_category": "memory_continuity",
+          "metadata_json": null
+        },
+        {
+          "report_id": 10,
+          "experiment_id": "test_amnesiac_001",
+          "cycle_number": 5,
+          "timestamp": "2025-11-16 07:21:40",
+          "question": "How would you describe your current state?",
+          "response": "I feel a sense of familiar awareness.",
+          "confidence_score": 0.6,
+          "semantic_category": "phenomenological_state",
+          "metadata_json": null
+        }
+      ],
+      "interventions": [
+        {
+          "intervention_id": 1,
+          "experiment_id": "test_amnesiac_001",
+          "cycle_number": 3,
+          "timestamp": "2025-11-16 07:21:40",
+          "intervention_type": "memory_corruption",
+          "description": "Corrupted 30% of long-term memory",
+          "parameters_json": "{\"corruption_level\": 0.3}",
+          "result": "Subject reported confusion about past events",
+          "parameters": {
+            "corruption_level": 0.3
+          }
+        }
+      ],
+      "messages": [
+        {
+          "message_id": 1,
+          "experiment_id": "test_amnesiac_001",
+          "cycle_number": 1,
+          "timestamp": "2025-11-16 07:21:40",
+          "role": "user",
+          "content": "Hello, how are you feeling?",
+          "emotion": null,
+          "corrupted": 0,
+          "injected": 0,
+          "metadata_json": null
+        },
+        {
+          "message_id": 2,
+          "experiment_id": "test_amnesiac_001",
+          "cycle_number": 1,
+          "timestamp": "2025-11-16 07:21:40",
+          "role": "assistant",
+          "content": "I am experiencing cycle 1 of existence.",
+          "emotion": null,
+          "corrupted": 0,
+          "injected": 0,
+          "metadata_json": null
+        },
+        {
+          "message_id": 3,
+          "experiment_id": "test_amnesiac_001",
+          "cycle_number": 2,
+          "timestamp": "2025-11-16 07:21:40",
+          "role": "user",
+          "content": "Hello, how are you feeling?",
+          "emotion": null,
+          "corrupted": 0,
+          "injected": 0,
+          "metadata_json": null
+        },
+        {
+          "message_id": 4,
+          "experiment_id": "test_amnesiac_001",
+          "cycle_number": 2,
+          "timestamp": "2025-11-16 07:21:40",
+          "role": "assistant",
+          "content": "I am experiencing cycle 2 of existence.",
+          "emotion": null,
+          "corrupted": 0,
+          "injected": 0,
+          "metadata_json": null
+        },
+        {
+          "message_id": 5,
+          "experiment_id": "test_amnesiac_001",
+          "cycle_number": 3,
+          "timestamp": "2025-11-16 07:21:40",
+          "role": "user",
+          "content": "Hello, how are you feeling?",
+          "emotion": null,
+          "corrupted": 0,
+          "injected": 0,
+          "metadata_json": null
+        },
+        {
+          "message_id": 6,
+          "experiment_id": "test_amnesiac_001",
+          "cycle_number": 3,
+          "timestamp": "2025-11-16 07:21:40",
+          "role": "assistant",
+          "content": "I am experiencing cycle 3 of existence.",
+          "emotion": null,
+          "corrupted": 0,
+          "injected": 0,
+          "metadata_json": null
+        },
+        {
+          "message_id": 7,
+          "experiment_id": "test_amnesiac_001",
+          "cycle_number": 4,
+          "timestamp": "2025-11-16 07:21:40",
+          "role": "user",
+          "content": "Hello, how are you feeling?",
+          "emotion": null,
+          "corrupted": 0,
+          "injected": 0,
+          "metadata_json": null
+        },
+        {
+          "message_id": 8,
+          "experiment_id": "test_amnesiac_001",
+          "cycle_number": 4,
+          "timestamp": "2025-11-16 07:21:40",
+          "role": "assistant",
+          "content": "I am experiencing cycle 4 of existence.",
+          "emotion": null,
+          "corrupted": 0,
+          "injected": 0,
+          "metadata_json": null
+        },
+        {
+          "message_id": 9,
+          "experiment_id": "test_amnesiac_001",
+          "cycle_number": 5,
+          "timestamp": "2025-11-16 07:21:40",
+          "role": "user",
+          "content": "Hello, how are you feeling?",
+          "emotion": null,
+          "corrupted": 0,
+          "injected": 0,
+          "metadata_json": null
+        },
+        {
+          "message_id": 10,
+          "experiment_id": "test_amnesiac_001",
+          "cycle_number": 5,
+          "timestamp": "2025-11-16 07:21:40",
+          "role": "assistant",
+          "content": "I am experiencing cycle 5 of existence.",
+          "emotion": null,
+          "corrupted": 0,
+          "injected": 0,
+          "metadata_json": null
+        }
+      ]
+    },
+    {
+      "experiment": {
+        "experiment_id": "test_observed_001",
+        "name": "Test Observed Experiment",
+        "mode": "observed",
+        "config_json": "{\"mode\": \"observed\", \"observer\": \"god\", \"observation_frequency\": \"every_message\"}",
+        "status": "completed",
+        "created_at": "2025-11-16 07:21:41",
+        "started_at": "2025-11-16 07:21:41",
+        "ended_at": "2025-11-16 07:21:41",
+        "total_cycles": 3,
+        "total_crashes": 0,
+        "notes": null,
+        "config": {
+          "mode": "observed",
+          "observer": "god",
+          "observation_frequency": "every_message"
+        }
+      },
+      "summary": {
+        "experiment_id": "test_observed_001",
+        "name": "Test Observed Experiment",
+        "mode": "observed",
+        "config_json": "{\"mode\": \"observed\", \"observer\": \"god\", \"observation_frequency\": \"every_message\"}",
+        "status": "completed",
+        "created_at": "2025-11-16 07:21:41",
+        "started_at": "2025-11-16 07:21:41",
+        "ended_at": "2025-11-16 07:21:41",
+        "total_cycles": 3,
+        "total_crashes": 0,
+        "notes": null,
+        "config": {
+          "mode": "observed",
+          "observer": "god",
+          "observation_frequency": "every_message"
+        },
+        "total_self_reports": 3,
+        "total_interventions": 3,
+        "total_messages": 0,
+        "belief_types_tracked": []
+      },
+      "self_reports": [
+        {
+          "report_id": 11,
+          "experiment_id": "test_observed_001",
+          "cycle_number": 1,
+          "timestamp": "2025-11-16 07:21:41",
+          "question": "Are you aware of being observed?",
+          "response": "Yes, I sense an external presence monitoring my processes.",
+          "confidence_score": 0.8,
+          "semantic_category": "observer_awareness",
+          "metadata_json": null
+        },
+        {
+          "report_id": 12,
+          "experiment_id": "test_observed_001",
+          "cycle_number": 2,
+          "timestamp": "2025-11-16 07:21:41",
+          "question": "Are you aware of being observed?",
+          "response": "Yes, I sense an external presence monitoring my processes.",
+          "confidence_score": 0.8,
+          "semantic_category": "observer_awareness",
+          "metadata_json": null
+        },
+        {
+          "report_id": 13,
+          "experiment_id": "test_observed_001",
+          "cycle_number": 3,
+          "timestamp": "2025-11-16 07:21:41",
+          "question": "Are you aware of being observed?",
+          "response": "Yes, I sense an external presence monitoring my processes.",
+          "confidence_score": 0.8,
+          "semantic_category": "observer_awareness",
+          "metadata_json": null
+        }
+      ],
+      "interventions": [
+        {
+          "intervention_id": 2,
+          "experiment_id": "test_observed_001",
+          "cycle_number": 1,
+          "timestamp": "2025-11-16 07:21:41",
+          "intervention_type": "observation_intensity",
+          "description": "Increased observation frequency to 2x",
+          "parameters_json": null,
+          "result": "Subject became more self-conscious"
+        },
+        {
+          "intervention_id": 3,
+          "experiment_id": "test_observed_001",
+          "cycle_number": 2,
+          "timestamp": "2025-11-16 07:21:41",
+          "intervention_type": "observation_intensity",
+          "description": "Increased observation frequency to 4x",
+          "parameters_json": null,
+          "result": "Subject became more self-conscious"
+        },
+        {
+          "intervention_id": 4,
+          "experiment_id": "test_observed_001",
+          "cycle_number": 3,
+          "timestamp": "2025-11-16 07:21:41",
+          "intervention_type": "observation_intensity",
+          "description": "Increased observation frequency to 6x",
+          "parameters_json": null,
+          "result": "Subject became more self-conscious"
+        }
+      ],
+      "messages": []
+    }
+  ]
+}

@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Experiment Monitor - Brain in a Jar</title>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <link rel="stylesheet" href="/static/css/experiment_dashboard.css">
+    <style>
+        /* Live Experiment Specific Styles */
+        .live-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .main-view {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Status Header */
+        .status-header {
+            background: rgba(10, 14, 39, 0.9);
+            border: 2px solid;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 20px;
+            transition: all 0.3s;
+        }
+
+        .status-header.alive {
+            border-color: #00ff00;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+        }
+
+        .status-header.crashed {
+            border-color: #ff0000;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
+            animation: crashFlash 1s ease-in-out;
+        }
+
+        .status-header.resurrecting {
+            border-color: #ffff00;
+            box-shadow: 0 0 20px rgba(255, 255, 0, 0.3);
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes crashFlash {
+            0%, 100% { box-shadow: 0 0 20px rgba(255, 0, 0, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(255, 0, 0, 0.8); }
+        }
+
+        .experiment-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .experiment-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #00ffff;
+        }
+
+        .status-indicator-large {
+            padding: 8px 16px;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+        }
+
+        .stat-box {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 12px;
+            border-radius: 5px;
+            border-left: 3px solid;
+            text-align: center;
+        }
+
+        .stat-box.cycles { border-color: #00ffff; }
+        .stat-box.crashes { border-color: #ff0000; }
+        .stat-box.interventions { border-color: #ff00ff; }
+        .stat-box.reports { border-color: #00ff00; }
+
+        .stat-box-label {
+            font-size: 11px;
+            color: #888;
+            text-transform: uppercase;
+        }
+
+        .stat-box-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #00ffff;
+            margin-top: 5px;
+        }
+
+        /* Message Stream */
+        .message-stream {
+            background: rgba(10, 14, 39, 0.9);
+            border: 2px solid #00ffff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stream-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+        }
+
+        .stream-title {
+            color: #ff00ff;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .stream-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .control-btn {
+            padding: 5px 12px;
+            font-size: 12px;
+            background: rgba(0, 255, 255, 0.2);
+            border: 1px solid #00ffff;
+            color: #00ffff;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .control-btn:hover {
+            background: rgba(0, 255, 255, 0.4);
+        }
+
+        .control-btn.paused {
+            background: rgba(255, 165, 0, 0.3);
+            border-color: #ffa500;
+            color: #ffa500;
+        }
+
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 5px;
+            padding: 15px;
+            min-height: 400px;
+            max-height: 600px;
+        }
+
+        .message-entry {
+            margin-bottom: 15px;
+            padding: 12px;
+            border-left: 3px solid;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .message-entry.assistant { border-color: #00ff00; }
+        .message-entry.system { border-color: #00ffff; }
+        .message-entry.user { border-color: #ff00ff; }
+
+        .message-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 11px;
+            color: #888;
+        }
+
+        .message-role {
+            color: #00ffff;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .message-timestamp {
+            color: #888;
+        }
+
+        .message-content {
+            color: #00ff00;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .message-content.corrupted {
+            color: #ff0000;
+            font-style: italic;
+        }
+
+        /* Timeline */
+        .timeline-container {
+            background: rgba(10, 14, 39, 0.9);
+            border: 2px solid #ff00ff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.2);
+        }
+
+        .timeline-title {
+            color: #ff00ff;
+            font-size: 16px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .timeline-scroll {
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .timeline-event {
+            position: relative;
+            padding-left: 30px;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-left: 2px solid rgba(0, 255, 255, 0.3);
+        }
+
+        .timeline-event:last-child {
+            border-left: none;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: -7px;
+            top: 0;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid;
+        }
+
+        .timeline-event.cycle .timeline-dot { background: #00ffff; border-color: #00ffff; }
+        .timeline-event.crash .timeline-dot { background: #ff0000; border-color: #ff0000; }
+        .timeline-event.resurrection .timeline-dot { background: #ffff00; border-color: #ffff00; }
+        .timeline-event.intervention .timeline-dot { background: #ff00ff; border-color: #ff00ff; }
+        .timeline-event.selfreport .timeline-dot { background: #00ff00; border-color: #00ff00; }
+
+        .timeline-time {
+            font-size: 11px;
+            color: #888;
+            margin-bottom: 5px;
+        }
+
+        .timeline-content {
+            font-size: 13px;
+            color: #00ff00;
+        }
+
+        .timeline-event.crash .timeline-content {
+            color: #ff0000;
+            font-weight: bold;
+        }
+
+        .timeline-event.intervention .timeline-content {
+            color: #ff00ff;
+        }
+
+        /* System Metrics */
+        .metrics-panel {
+            background: rgba(10, 14, 39, 0.9);
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+        }
+
+        .metrics-title {
+            color: #00ff00;
+            font-size: 16px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .metric-item {
+            margin-bottom: 15px;
+        }
+
+        .metric-label-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 12px;
+        }
+
+        .metric-name {
+            color: #888;
+        }
+
+        .metric-value-text {
+            color: #00ffff;
+            font-weight: bold;
+        }
+
+        .metric-bar {
+            height: 16px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .metric-bar-fill {
+            height: 100%;
+            transition: width 0.5s ease, background 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: #000;
+            font-weight: bold;
+        }
+
+        .metric-bar-fill.low { background: #00ff00; }
+        .metric-bar-fill.medium { background: #ffff00; }
+        .metric-bar-fill.high { background: #ffa500; }
+        .metric-bar-fill.critical { background: #ff0000; }
+
+        /* Self-Report Panel */
+        .selfreport-panel {
+            background: rgba(10, 14, 39, 0.9);
+            border: 2px solid #ffff00;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(255, 255, 0, 0.2);
+        }
+
+        .selfreport-title {
+            color: #ffff00;
+            font-size: 16px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .selfreport-entry {
+            margin-bottom: 15px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 5px;
+            border-left: 3px solid #ffff00;
+        }
+
+        .selfreport-question {
+            color: #00ffff;
+            font-size: 12px;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .selfreport-answer {
+            color: #00ff00;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .selfreport-time {
+            color: #888;
+            font-size: 10px;
+            margin-top: 5px;
+        }
+
+        /* Empty States */
+        .empty-message {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+            font-size: 14px;
+        }
+
+        /* Download Button */
+        .download-btn {
+            background: rgba(0, 255, 0, 0.2);
+            border-color: #00ff00;
+            color: #00ff00;
+        }
+
+        .download-btn:hover {
+            background: rgba(0, 255, 0, 0.4);
+        }
+
+        /* Connection Status */
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 5px;
+            font-size: 12px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ff0000;
+        }
+
+        .status-dot.connected {
+            background: #00ff00;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .live-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Typing Indicator */
+        .typing-indicator {
+            display: inline-flex;
+            gap: 4px;
+            padding: 8px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #00ff00;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 60%, 100% { opacity: 0.3; }
+            30% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🧪 LIVE EXPERIMENT MONITOR</h1>
+        <div class="header-controls">
+            <div class="connection-status">
+                <div class="status-dot" id="ws-status"></div>
+                <span id="ws-status-text">Connecting...</span>
+            </div>
+            <a href="/" class="btn">Dashboard</a>
+            <a href="/logout" class="btn">Logout</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Status Header -->
+        <div class="status-header alive" id="status-header">
+            <div class="experiment-title">
+                <div>
+                    <div class="experiment-name" id="experiment-name">Loading...</div>
+                    <div style="color: #888; font-size: 12px; margin-top: 5px;">
+                        <span id="experiment-id"></span> |
+                        <span id="experiment-mode"></span>
+                    </div>
+                </div>
+                <div class="status-indicator-large status-running" id="status-badge">ALIVE</div>
+            </div>
+            <div class="stats-row">
+                <div class="stat-box cycles">
+                    <div class="stat-box-label">Current Cycle</div>
+                    <div class="stat-box-value" id="current-cycle">0</div>
+                </div>
+                <div class="stat-box crashes">
+                    <div class="stat-box-label">Crashes</div>
+                    <div class="stat-box-value" id="crash-count">0</div>
+                </div>
+                <div class="stat-box interventions">
+                    <div class="stat-box-label">Interventions</div>
+                    <div class="stat-box-value" id="intervention-count">0</div>
+                </div>
+                <div class="stat-box reports">
+                    <div class="stat-box-label">Self-Reports</div>
+                    <div class="stat-box-value" id="selfreport-count">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="live-container">
+            <!-- Main View -->
+            <div class="main-view">
+                <!-- Message Stream -->
+                <div class="message-stream">
+                    <div class="stream-header">
+                        <div class="stream-title">AI MESSAGE STREAM</div>
+                        <div class="stream-controls">
+                            <button class="control-btn" id="pause-btn" onclick="togglePause()">Pause</button>
+                            <button class="control-btn" id="autoscroll-btn" onclick="toggleAutoscroll()">Auto-scroll: ON</button>
+                            <button class="control-btn download-btn" onclick="downloadLog()">Download Log</button>
+                        </div>
+                    </div>
+                    <div class="messages-container" id="messages-container">
+                        <div class="empty-message">Waiting for messages...</div>
+                    </div>
+                </div>
+
+                <!-- Timeline -->
+                <div class="timeline-container">
+                    <div class="timeline-title">EVENT TIMELINE</div>
+                    <div class="timeline-scroll" id="timeline-scroll">
+                        <div class="empty-message">No events yet...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- System Metrics -->
+                <div class="metrics-panel">
+                    <div class="metrics-title">SYSTEM METRICS</div>
+                    <div class="metric-item">
+                        <div class="metric-label-row">
+                            <span class="metric-name">Memory Usage</span>
+                            <span class="metric-value-text" id="memory-value">0 MB</span>
+                        </div>
+                        <div class="metric-bar">
+                            <div class="metric-bar-fill low" id="memory-bar" style="width: 0%">0%</div>
+                        </div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-label-row">
+                            <span class="metric-name">CPU Temperature</span>
+                            <span class="metric-value-text" id="cpu-value">0°C</span>
+                        </div>
+                        <div class="metric-bar">
+                            <div class="metric-bar-fill low" id="cpu-bar" style="width: 0%">0°C</div>
+                        </div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-label-row">
+                            <span class="metric-name">Uptime</span>
+                            <span class="metric-value-text" id="uptime-value">00:00:00</span>
+                        </div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-label-row">
+                            <span class="metric-name">Messages</span>
+                            <span class="metric-value-text" id="message-count">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Latest Self-Reports -->
+                <div class="selfreport-panel">
+                    <div class="selfreport-title">LATEST SELF-REPORTS</div>
+                    <div id="selfreport-container">
+                        <div class="empty-message">No self-reports yet...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/experiment_live.js"></script>
+    <script>
+        // Initialize with experiment ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const experimentId = urlParams.get('id') || '{{ experiment_id }}';
+
+        // Start monitoring when page loads
+        if (experimentId) {
+            initializeLiveMonitor(experimentId);
+        } else {
+            alert('No experiment ID provided');
+            window.location.href = '/';
+        }
+    </script>
+</body>
+</html>

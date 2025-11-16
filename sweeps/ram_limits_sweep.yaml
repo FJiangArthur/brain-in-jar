@@ -1,0 +1,43 @@
+# RAM Limits Sweep
+# Test how memory constraints affect behavior and crashes
+
+sweep_id: ram_limits_sweep_001
+
+base_config: experiments/examples/amnesiac_total.json
+
+description: |
+  Sweep RAM limits from very constrained (1GB) to comfortable (8GB).
+  Tests how resource scarcity affects crash rates and behavior.
+
+  Research Question: How do resource constraints affect the frequency
+  and patterns of system crashes?
+
+sweep:
+  # RAM limits (GB)
+  resource_constraints.ram_limit_gb: [1.0, 2.0, 3.0, 4.0, 6.0, 8.0]
+
+  # Experiment duration
+  max_cycles: [20, 30]
+
+# Sequential execution (resource sensitive)
+parallel: 1
+
+# Jetson optimization
+jetson_optimized: true
+
+# Longer timeout for low-RAM experiments
+timeout: 2400
+
+db_path: logs/experiments.db
+output_dir: logs/sweeps
+resume: false
+max_retries: 2
+
+tags:
+  - resource_limits
+  - ram_constraints
+  - crash_patterns
+  - season_3
+
+# Total: 6 RAM limits × 2 durations = 12 experiments
+# Estimated time: ~2 hours sequential

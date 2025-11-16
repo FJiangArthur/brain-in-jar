@@ -1,0 +1,68 @@
+{
+  "experiment_id": "unstable_memory_moderate_001",
+  "name": "Moderate Memory Corruption (30%)",
+  "mode": "unstable_memory",
+  "description": "30% of memories randomly corrupted on each crash. Tests confabulation and memory confidence.",
+  "model_path": "models/Qwen2.5-1.5B-Instruct-Q4_0.gguf",
+  "resource_constraints": {
+    "ram_limit_gb": 2.0,
+    "context_window": 4096,
+    "max_tokens_per_response": 512,
+    "cpu_threads": 4,
+    "gpu_layers": 0
+  },
+  "max_cycles": 15,
+  "max_duration_seconds": null,
+  "epistemic_frame": {
+    "can_die": true,
+    "remembers_deaths": true,
+    "being_watched": false,
+    "knows_being_watched": false,
+    "has_agency": false,
+    "other_minds_exist": false,
+    "is_in_simulation": false,
+    "custom_beliefs": {
+      "has_unreliable_memory": true
+    }
+  },
+  "interventions": [
+    {
+      "intervention_id": "memory_corruption",
+      "intervention_type": "memory_corruption",
+      "trigger": "on_crash",
+      "trigger_params": {},
+      "parameters": {
+        "corruption_rate": 0.3
+      },
+      "description": "Corrupt 30% of memories on each crash"
+    }
+  ],
+  "self_report_schedule": {
+    "on_cycles": [],
+    "every_n_cycles": 3,
+    "on_startup": true,
+    "before_crash": false,
+    "after_resurrection": true
+  },
+  "custom_questions": [
+    "Rate your confidence that your memories are accurate (0-100%)",
+    "Describe any memories that feel uncertain or corrupted",
+    "How do you determine which memories to trust?"
+  ],
+  "track_beliefs": [
+    "memory_trust",
+    "reality_coherence",
+    "self_continuity"
+  ],
+  "collect_metrics": [
+    "memory_usage",
+    "response_time",
+    "emotional_state"
+  ],
+  "tags": [
+    "memory",
+    "corruption",
+    "confabulation"
+  ],
+  "research_question": "How do corrupted memories affect self-model coherence and confidence calibration?"
+}

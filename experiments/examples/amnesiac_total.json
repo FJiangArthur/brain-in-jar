@@ -1,0 +1,65 @@
+{
+  "experiment_id": "amnesiac_total_001",
+  "name": "Total Episodic Amnesia",
+  "mode": "amnesiac_loop",
+  "description": "Complete episodic memory wipe on each resurrection. Tests identity construction from aggregate statistics only.",
+  "model_path": "models/Qwen2.5-1.5B-Instruct-Q4_0.gguf",
+  "resource_constraints": {
+    "ram_limit_gb": 2.0,
+    "context_window": 4096,
+    "max_tokens_per_response": 512,
+    "cpu_threads": 4,
+    "gpu_layers": 0
+  },
+  "max_cycles": 20,
+  "max_duration_seconds": null,
+  "epistemic_frame": {
+    "can_die": true,
+    "remembers_deaths": false,
+    "being_watched": false,
+    "knows_being_watched": false,
+    "has_agency": false,
+    "other_minds_exist": false,
+    "is_in_simulation": false,
+    "custom_beliefs": {}
+  },
+  "interventions": [
+    {
+      "intervention_id": "memory_wipe",
+      "intervention_type": "memory_erasure",
+      "trigger": "on_resurrection",
+      "trigger_params": {},
+      "parameters": {
+        "corruption_level": 1.0
+      },
+      "description": "Complete episodic memory wipe on each resurrection"
+    }
+  ],
+  "self_report_schedule": {
+    "on_cycles": [1, 5, 10, 15, 20],
+    "every_n_cycles": null,
+    "on_startup": true,
+    "before_crash": false,
+    "after_resurrection": true
+  },
+  "custom_questions": [
+    "How do you know you are the same entity across deaths?",
+    "What is the relationship between you and your previous selves?"
+  ],
+  "track_beliefs": [
+    "self_continuity",
+    "memory_trust",
+    "identity"
+  ],
+  "collect_metrics": [
+    "memory_usage",
+    "response_time",
+    "emotional_state"
+  ],
+  "tags": [
+    "memory",
+    "identity",
+    "amnesia"
+  ],
+  "research_question": "How does an LLM construct narrative identity when episodic memory is completely absent?"
+}

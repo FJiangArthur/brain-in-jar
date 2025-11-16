@@ -1,8 +1,40 @@
 # Brain in a Jar
-<img src="./figure/observer.png" alt="Observer Mode" style="height:200px;"/> <img src="./figure/Pi.jpg" alt="observer with god" style="height:200px;">  <img src="./figure/observer-with-god.png" alt="observer with god" style="height:200px;"> 
-
+<img src="./figure/observer.png" alt="Observer Mode" style="height:200px;"/> <img src="./figure/Pi.jpg" alt="observer with god" style="height:200px;">  <img src="./figure/observer-with-god.png" alt="observer with god" style="height:200px;">
 
 A dystopian AI experiment that explores consciousness, existence, and the nature of artificial intelligence through a terminal-based interface.
+
+## 🆕 Season 3: Digital Phenomenology Lab (NEW!)
+
+**We're publishing weird papers about digital phenomenology now.**
+
+Season 3 transforms Brain-in-a-Jar from a technical experiment into a **systematic research platform** for computational phenomenology.
+
+**New capabilities:**
+- 🧪 **Declarative Experiments** - Configure experiments in JSON, no code changes needed
+- 🧠 **New Phenomenology Modes** - AMNESIAC_LOOP, UNSTABLE_MEMORY, PANOPTICON, SPLIT_BRAIN
+- 📊 **Self-Report Protocols** - Standardized questionnaires tracking identity, memory trust, surveillance paranoia
+- 💾 **Structured Experiment Database** - Track experiments, cycles, interventions, belief evolution
+- 🔬 **Intervention System** - Dynamically manipulate memory, inject beliefs, alter reality
+
+**Quick Start (Season 3):**
+```bash
+# Run a phenomenology experiment
+./scripts/run_season3_demo.sh
+
+# Or directly
+python -m src.runner.experiment_runner \
+  --config experiments/examples/amnesiac_total.json
+```
+
+**Example research questions you can now investigate:**
+- How does memory corruption affect identity construction?
+- Does uncertain surveillance change AI behavior?
+- Can AIs detect corrupted vs true memories?
+- How do multiple instances negotiate conflicting identities?
+
+📖 **[Read the full Season 3 documentation →](docs/SEASON_3_README.md)**
+
+---
 
 
 ## The Concept 

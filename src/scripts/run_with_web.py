@@ -158,21 +158,21 @@ def parse_runner_arguments():
     parser.add_argument(
         '--ram-limit-subject',
         type=float,
-        default=10.0,
+        default=8.0,           # Optimized for 32GB Jetson Orin
         help='RAM limit for subject instance (GB)'
     )
 
     parser.add_argument(
         '--ram-limit-observer',
         type=float,
-        default=15.0,
+        default=10.0,          # Optimized for 32GB Jetson Orin
         help='RAM limit for observer instance (GB)'
     )
 
     parser.add_argument(
         '--ram-limit-god',
         type=float,
-        default=20.0,
+        default=12.0,          # Optimized for 32GB Jetson Orin
         help='RAM limit for god instance (GB)'
     )
 

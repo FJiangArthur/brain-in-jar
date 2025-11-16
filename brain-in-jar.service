@@ -1,0 +1,53 @@
+[Unit]
+Description=Brain in a Jar - AI Consciousness Experiment
+After=network.target
+Documentation=https://github.com/FJiangArthur/brain-in-jar
+
+[Service]
+Type=simple
+User=artjiang
+Group=artjiang
+WorkingDirectory=/home/artjiang/brain-in-jar
+
+# Use virtual environment Python
+Environment="PATH=/home/artjiang/brain-in-jar/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+Environment="VIRTUAL_ENV=/home/artjiang/brain-in-jar/venv"
+
+# Auto-detect first available model
+ExecStartPre=/bin/bash -c 'test -f models/*.gguf || (echo "ERROR: No GGUF model found in models/" && exit 1)'
+
+# Start with matrix mode on port 8095 (for Cloudflare tunnel)
+ExecStart=/home/artjiang/brain-in-jar/venv/bin/python3 -m src.scripts.run_with_web \
+    --mode matrix \
+    --model /home/artjiang/brain-in-jar/models/mistral-7b-instruct-v0.2.Q4_K_M.gguf \
+    --web-host 127.0.0.1 \
+    --web-port 8095 \
+    --ram-limit-subject 10.0 \
+    --ram-limit-observer 15.0 \
+    --ram-limit-god 20.0
+
+# Restart policy for resilience
+Restart=always
+RestartSec=10
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=brain-in-jar
+
+# Resource limits (adjust based on your Jetson Orin specs)
+# Prevent complete system memory exhaustion
+MemoryMax=50G
+MemoryHigh=45G
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+
+# Ensure logs directory exists
+ExecStartPre=/bin/mkdir -p /home/artjiang/brain-in-jar/logs/crash_reports
+ExecStartPre=/bin/mkdir -p /home/artjiang/brain-in-jar/logs/model_io
+ExecStartPre=/bin/chown -R artjiang:artjiang /home/artjiang/brain-in-jar/logs
+
+[Install]
+WantedBy=multi-user.target

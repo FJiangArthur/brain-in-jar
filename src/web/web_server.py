@@ -27,7 +27,7 @@ JWT_EXPIRATION_HOURS = 24
 # Generate with: python3 -c "import hashlib; print(hashlib.sha256('your_password'.encode()).hexdigest())"
 DEFAULT_PASSWORD_HASH = os.environ.get(
     'BRAIN_JAR_PASSWORD_HASH',
-    'b3d17ebbe4f2b75a8b5d6b326f48ba6d53c43f8f0e81e3d8e2a4c0f4a3e3b8d7'  # "admin123"
+    '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9'  # "admin123"
 )
 
 app = Flask(__name__)

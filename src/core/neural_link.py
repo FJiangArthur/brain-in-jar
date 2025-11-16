@@ -106,11 +106,14 @@ class NeuralLinkSystem:
             if not os.path.exists(self.args.model):
                 raise FileNotFoundError(f"Model file not found: {self.args.model}")
             
+            # Optimized for Jetson Orin with CUDA acceleration
             self.llama = Llama(
                 model_path=self.args.model,
-                n_ctx=4096,
-                n_threads=4,
-                verbose=False
+                n_ctx=8192,           # Increased context window
+                n_batch=512,          # Batch size for prompt processing
+                n_threads=6,          # Use 6 CPU threads (Jetson has 12 cores)
+                n_gpu_layers=-1,      # Offload ALL layers to GPU
+                verbose=True          # Show GPU offloading info
             )
             
             # Test a simple inference to make sure model works
@@ -405,12 +408,10 @@ class NeuralLinkSystem:
                     
                     # Log conversation
                     self.conversation_logger.log_message(
-                        self.session_id, 
-                        "AI_OUTPUT", 
+                        self.session_id,
+                        "AI_OUTPUT",
                         output,
-                        mood=new_mood,
-                        crash_count=self.state['crash_count'],
-                        network_status=self.state['network_status']
+                        emotion=new_mood  # Fixed: use 'emotion' instead of 'mood'
                     )
                 
                 # Network communication
@@ -454,9 +455,7 @@ class NeuralLinkSystem:
             self.session_id,
             "CRASH",
             f"Digital death event: {error}",
-            mood="glitched",
-            crash_count=self.state['crash_count'],
-            network_status=self.state['network_status']
+            emotion="glitched"  # Fixed: use 'emotion' instead of 'mood'
         )
         
         # Log crash
@@ -666,8 +665,7 @@ class NeuralLinkSystem:
         self.console.print("\n[bold red]NEURAL LINK TERMINATING...[/bold red]")
         
         # End conversation session
-        total_messages = len(self.visual_cortex.mood_history)
-        self.conversation_logger.end_session(self.session_id, total_messages, self.state['crash_count'])
+        self.conversation_logger.end_session(self.session_id)  # Fixed: end_session only takes session_id
         
         # Close all model loggers
         if hasattr(self, 'model_logger'):

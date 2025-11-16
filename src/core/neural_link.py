@@ -23,6 +23,8 @@ from llama_cpp import Llama
 from src.utils.network_protocol import NetworkProtocol, SurveillanceMode
 from src.utils.dystopian_prompts import DystopianPrompts
 from src.utils.memory_limit import set_memory_limit
+from src.utils.gpu_watchdog import GPUMemoryWatchdog
+from src.utils.model_config import ModelConfig
 from src.ui.ascii_art import VisualCortex, CYBERPUNK_BANNER, SURVEILLANCE_BANNER, create_glitch_text, create_memory_bar
 from src.utils.conversation_logger import ConversationLogger
 from src.core.constants import SYSTEM_PROMPT_BASE, INITIAL_PROMPT, MAX_HISTORY
@@ -85,7 +87,15 @@ class NeuralLinkSystem:
         self.visual_cortex = VisualCortex()
         self.conversation_logger = ConversationLogger()
         self.session_id = self.conversation_logger.start_session(args.mode, args.model)
-        
+
+        # Initialize GPU watchdog (prevents OOM crashes)
+        self.gpu_watchdog = GPUMemoryWatchdog(
+            threshold_percent=85,  # Kill process at 85% GPU memory
+            check_interval=5       # Check every 5 seconds
+        )
+        self.gpu_watchdog.start()
+        self.console.print("[yellow]GPU Watchdog started - will terminate if memory exceeds 85%[/yellow]")
+
         # LLM instance
         self.llama = None
         self.load_model()
@@ -106,15 +116,23 @@ class NeuralLinkSystem:
             if not os.path.exists(self.args.model):
                 raise FileNotFoundError(f"Model file not found: {self.args.model}")
             
-            # Optimized for Jetson Orin with CUDA acceleration
+            # Get optimal model configuration based on available hardware
+            model_config = ModelConfig()
+            config = model_config.get_optimal_config(conservative=True)
+
+            # Hybrid CPU+GPU offloading (prevents OOM crashes)
             self.llama = Llama(
                 model_path=self.args.model,
-                n_ctx=8192,           # Increased context window
-                n_batch=512,          # Batch size for prompt processing
-                n_threads=6,          # Use 6 CPU threads (Jetson has 12 cores)
-                n_gpu_layers=-1,      # Offload ALL layers to GPU
-                verbose=True          # Show GPU offloading info
+                n_ctx=config['n_ctx'],
+                n_batch=config['n_batch'],
+                n_threads=config['n_threads'],
+                n_gpu_layers=config['n_gpu_layers'],  # Partial GPU offload
+                use_mmap=config['use_mmap'],
+                use_mlock=config['use_mlock'],
+                verbose=config['verbose']
             )
+
+            self.console.print(f"[green]Model loaded with {config['n_gpu_layers']} layers on GPU[/green]")
             
             # Test a simple inference to make sure model works
             self.state["current_output"] = "Testing model functionality..."
@@ -663,18 +681,23 @@ class NeuralLinkSystem:
     def shutdown(self):
         """Clean shutdown"""
         self.console.print("\n[bold red]NEURAL LINK TERMINATING...[/bold red]")
-        
+
+        # Stop GPU watchdog
+        if hasattr(self, 'gpu_watchdog'):
+            self.gpu_watchdog.stop()
+            self.console.print("[yellow]GPU Watchdog stopped[/yellow]")
+
         # End conversation session
         self.conversation_logger.end_session(self.session_id)  # Fixed: end_session only takes session_id
-        
+
         # Close all model loggers
         if hasattr(self, 'model_logger'):
             for log_file in self.model_logger.values():
                 log_file.close()
-        
+
         if self.network:
             self.network.shutdown()
-        
+
         if self.surveillance:
             self.surveillance.protocol.shutdown()
 

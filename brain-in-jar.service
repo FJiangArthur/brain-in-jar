@@ -17,14 +17,15 @@ Environment="VIRTUAL_ENV=/home/artjiang/brain-in-jar/venv"
 ExecStartPre=/bin/bash -c 'test -f models/*.gguf || (echo "ERROR: No GGUF model found in models/" && exit 1)'
 
 # Start with matrix mode on port 8095 (for Cloudflare tunnel)
+# Conservative RAM limits to prevent OOM crashes (total ~20GB for 3 instances)
 ExecStart=/home/artjiang/brain-in-jar/venv/bin/python3 -m src.scripts.run_with_web \
     --mode matrix \
     --model /home/artjiang/brain-in-jar/models/mistral-7b-instruct-v0.2.Q4_K_M.gguf \
     --web-host 127.0.0.1 \
     --web-port 8095 \
-    --ram-limit-subject 10.0 \
-    --ram-limit-observer 15.0 \
-    --ram-limit-god 20.0
+    --ram-limit-subject 6.0 \
+    --ram-limit-observer 7.0 \
+    --ram-limit-god 7.0
 
 # Restart policy for resilience
 Restart=always
@@ -35,10 +36,14 @@ StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=brain-in-jar
 
-# Resource limits (adjust based on your Jetson Orin specs)
+# Resource limits (adjusted for 32GB Jetson Orin)
 # Prevent complete system memory exhaustion
-MemoryMax=50G
-MemoryHigh=45G
+# These are HARD limits - systemd will kill the process if exceeded
+MemoryMax=24G
+MemoryHigh=22G
+
+# CPU limits (prevent CPU starvation of other services)
+CPUQuota=600%
 
 # Security hardening
 NoNewPrivileges=true

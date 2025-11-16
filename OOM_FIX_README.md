@@ -37,17 +37,20 @@ n_gpu_layers=20  # ✅ Mix of GPU + CPU
 
 **File**: `src/utils/gpu_watchdog.py`
 
-Background thread that monitors GPU memory usage every 5 seconds:
+Background thread with adaptive monitoring that responds to memory usage patterns:
 
-- **Threshold**: Kills process if GPU memory exceeds 85%
-- **Also Monitors**: System RAM (kills at 90%)
+- **GPU Threshold**: Kills process if GPU memory exceeds 85%
+- **RAM Threshold**: Kills process if system RAM exceeds 85%
+- **Adaptive Monitoring**: 2-second base interval, 1-second when >70% usage
+- **Spike Detection**: Alerts on sudden >10% jumps between checks
 - **Graceful Shutdown**: Attempts SIGTERM first, then SIGKILL
 
 ```python
 # Integrated into NeuralLinkSystem
 self.gpu_watchdog = GPUMemoryWatchdog(
-    threshold_percent=85,
-    check_interval=5
+    threshold_percent=85,      # GPU threshold
+    check_interval=2,          # Base interval (adaptive)
+    system_ram_threshold=85    # RAM threshold
 )
 self.gpu_watchdog.start()
 ```
@@ -158,11 +161,16 @@ free -h
 
 ### GPU Watchdog Logs
 
-The watchdog prints status every 5 seconds:
+The watchdog uses adaptive monitoring with faster checks when memory is high:
 
 ```
-[GPU Watchdog] GPU: 45.2% | System RAM: 62.3%
-[GPU Watchdog] GPU: 67.8% | System RAM: 65.1%
+[GPU Watchdog] Starting monitoring (PID: 12345, GPU threshold: 85%, RAM threshold: 85%)
+[GPU Watchdog] Adaptive monitoring enabled: faster checks when usage >70% or memory trending up
+[GPU Watchdog] 🟢 GPU: 45.2% | System RAM: 62.3%
+[GPU Watchdog] 🟢 GPU: 67.8% | System RAM: 65.1%
+[GPU Watchdog] 🔴 HIGH MEMORY MODE: Switching to 1-second checks
+[GPU Watchdog] 🔴 GPU: 72.5% | System RAM: 71.8%
+[GPU Watchdog] ⚡ GPU SPIKE DETECTED: +12.3% (72.5% -> 84.8%)
 [GPU Watchdog] ⚠️  CRITICAL: GPU memory at 87.3%
 [GPU Watchdog] 🛑 Killing process to prevent OOM crash
 ```
@@ -286,8 +294,9 @@ sudo nano /etc/systemd/system/brain-in-jar.service
 │                                                          │
 │  ┌────────────────────────────────────────────────┐    │
 │  │         GPU Memory Watchdog                     │    │
-│  │  • Monitors every 5 seconds                     │    │
-│  │  • Kills at 85% GPU / 90% RAM                   │    │
+│  │  • Adaptive monitoring (2s base, 1s when >70%) │    │
+│  │  • Kills at 85% GPU / 85% RAM                   │    │
+│  │  • Spike detection (>10% jumps)                 │    │
 │  │  • Prevents system crashes                      │    │
 │  └────────────────────────────────────────────────┘    │
 │                          ↓                               │

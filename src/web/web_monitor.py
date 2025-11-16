@@ -47,6 +47,8 @@ class WebMonitor:
             'peer_crash_count': state.get('peer_crash_count', 0),
             'network_status': state.get('network_status', 'OFFLINE'),
             'memory_usage': state.get('memory_usage', 0),
+            'cpu_usage': state.get('cpu_usage', 0),
+            'gpu_memory': state.get('gpu_memory', None),
             'cpu_temp': state.get('cpu_temp', 0),
             'current_output': state.get('current_output', ''),
             'current_mood': state.get('current_mood', 'neutral'),

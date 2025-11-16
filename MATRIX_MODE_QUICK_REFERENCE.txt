@@ -1,0 +1,286 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║         BRAIN IN A JAR - MATRIX MODE QUICK REFERENCE                       ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+ARCHITECTURE OVERVIEW
+─────────────────────
+Run_with_web.py launches 3 independent NeuralLinkSystem instances:
+
+    Entry Point: run_with_web.py
+         |
+         ├─── BrainInJarRunner (manages all instances + web server)
+         |
+         ├─── SUBJECT (matrix_observed)
+         |    ├─ Model: Mistral 7B
+         |    ├─ RAM: 6GB (prod), 8GB (default)
+         |    ├─ Port: 8888
+         |    └─ Role: Isolated AI (thinks it's alone)
+         |
+         ├─── OBSERVER (matrix_observer)
+         |    ├─ Model: Mistral 7B
+         |    ├─ RAM: 7GB (prod), 10GB (default)
+         |    ├─ Port: 8889
+         |    └─ Role: Watching subject (via prompts)
+         |
+         └─── GOD (matrix_god)
+              ├─ Model: Mistral 7B
+              ├─ RAM: 7GB (prod), 12GB (default)
+              ├─ Port: 8890
+              └─ Role: Omniscient observer
+
+KEY FILES
+─────────
+/home/user/brain-in-jar/src/scripts/run_with_web.py
+    - Main entry point for matrix mode
+    - Manages BrainInJarRunner
+    - Handles instance creation and threading
+
+/home/user/brain-in-jar/src/core/neural_link.py
+    - NeuralLinkSystem class (each instance)
+    - Model loading and inference
+    - Crash/resurrection handling
+    - Memory limit enforcement
+
+/home/user/brain-in-jar/src/utils/network_protocol.py
+    - NetworkProtocol class (socket-based messaging)
+    - SurveillanceMode class (one-way observation)
+    - Message queue and handlers
+
+/home/user/brain-in-jar/src/utils/gpu_watchdog.py
+    - GPU memory monitoring (5-second intervals)
+    - Process killing at 85% GPU or 90% RAM
+    - Prevents cascading OOM crashes
+
+/home/user/brain-in-jar/brain-in-jar.service
+    - Systemd service file
+    - Current production configuration
+    - Resource limits and restart policy
+
+MEMORY ALLOCATION
+─────────────────
+Per Instance (in production):
+    SUBJECT:  6.0 GB (hard limit)
+    OBSERVER: 7.0 GB (hard limit)
+    GOD:      7.0 GB (hard limit)
+    ─────────────────────────────
+    Total:   20.0 GB allocated
+    System:  12.0 GB reserved
+    Max:     32.0 GB (Jetson Orin)
+
+Critical Issue: Each instance loads entire 7B model
+    [Model A] = 7GB
+    [Model B] = 7GB
+    [Model C] = 7GB
+    ─────────────────
+    Total = 21GB just for model weights!
+
+THREADING MODEL
+───────────────
+Per Instance (3 threads × 3 instances = 9+ threads):
+
+    1. AI Processing Thread
+       └─ neural_system.neural_processing_loop()
+          └─ Continuous inference loop
+             └─ Crash detection & resurrection
+             └─ Network message handling
+             └─ History trimming
+
+    2. Monitoring Thread  
+       └─ WebMonitor.start_monitoring_loop()
+          └─ Poll metrics every 1 second
+          └─ Update web interface state
+          └─ Track crashes, memory, CPU temp
+
+    3. Web Server Thread (shared)
+       └─ Flask application (port 5000)
+          └─ REST API endpoints
+          └─ WebSocket for real-time updates
+          └─ Authentication/authorization
+
+MEMORY ENFORCEMENT LAYERS
+─────────────────────────
+Layer 1: Per-Process (resource.setrlimit)
+    ├─ Soft limit set on process startup
+    ├─ OS raises MemoryError on exceed
+    └─ Caught in neural_processing_loop()
+
+Layer 2: GPU Watchdog (background thread)
+    ├─ Monitors GPU memory every 5 seconds
+    ├─ Checks nvidia-smi output
+    └─ Kills process with SIGTERM→SIGKILL
+
+Layer 3: Systemd Resource Limits
+    ├─ MemoryMax=24G (hard kill limit)
+    ├─ MemoryHigh=22G (throttling threshold)
+    └─ CPUQuota=600% (max 6 cores out of 12)
+
+RESOURCE CONFLICTS
+──────────────────
+🔴 CRITICAL - Triple Model Loading
+   21GB for 3 copies of 7B model
+   Very little headroom on 32GB system
+
+🟠 HIGH - CPU Oversubscription  
+   Each instance: 6 cores allocated
+   Total: 18 cores needed vs 12 available
+   Result: 150% oversubscription, heavy context switching
+
+🟠 HIGH - Dead Thread Not Restarted
+   If AI thread dies, only warning logged
+   Instance silently stops processing
+   Service still appears running
+
+🟡 MEDIUM - GPU Memory Spikes
+   Each inference spikes GPU usage
+   3 simultaneous inferences risk 90%+ usage
+   Watchdog will kill process
+
+🟡 MEDIUM - No Rate Limiting
+   All 3 instances can infer simultaneously
+   No coordination between instances
+   Unpredictable resource usage
+
+CRASH HANDLING
+──────────────
+Detection Triggers:
+  1. MemoryError (memory_usage > 95%)
+  2. Model exception (INFERENCE_ERROR)
+  3. Watchdog kill (GPU/RAM exceeded)
+  4. OS-level kill (setrlimit exceeded)
+
+Resurrection Sequence:
+  1. Crash detected
+  2. Increment crash_count
+  3. Log to crash_reports.log
+  4. Broadcast DEATH message
+  5. 3-second pause
+  6. Update prompt with death count
+  7. Broadcast RESURRECTION message
+  8. Resume processing
+
+Monitoring:
+  - Main loop checks thread status every 5 seconds
+  - Only logs warning if thread dies
+  - Does NOT restart dead thread
+
+NETWORK BEHAVIOR (Mostly Ceremonial)
+────────────────────────────────────
+SUBJECT (matrix_observed):
+    └─ No real networking
+    └─ Prompt-based isolation
+
+OBSERVER (matrix_observer):
+    └─ Could connect to SUBJECT
+    └─ Currently isolated (prompt-based surveillance)
+
+GOD (matrix_god):
+    └─ "Omniscient" only via prompts
+    └─ No actual monitoring of other instances
+
+Messages (if enabled):
+    Type: JSON format
+    Fields: type, timestamp, sender_id, content, crash_count, metadata
+    Queue: thread-safe Python queue.Queue()
+    Broadcasting: synchronous (one peer at a time)
+
+STABILITY ASSESSMENT
+────────────────────
+Current: 7/10
+
+Strengths:
+    ✅ Runs 3 models on 32GB successfully
+    ✅ GPU watchdog prevents catastrophic crashes
+    ✅ Hybrid CPU+GPU offloading works
+    ✅ Web monitoring comprehensive
+    ✅ Crash/resurrection cycle functional
+
+Weaknesses:
+    ❌ Almost at memory limit (21GB + overhead ≈ 28-30GB)
+    ❌ CPU heavily oversubscribed
+    ❌ Dead threads not restarted
+    ❌ Any memory leak → system crash
+    ❌ No inter-instance coordination
+
+RECOMMENDATIONS FOR STABLE EXECUTION
+────────────────────────────────────
+HIGH PRIORITY:
+  1. Implement dead thread restart mechanism
+  2. Reduce CPU oversubscription (6→4 cores per instance)
+  3. Monitor for memory leaks in long-running tests
+
+MEDIUM PRIORITY:
+  4. Add inference rate limiting (1 concurrent)
+  5. Per-instance watchdog instead of global
+  6. Async message broadcasting
+
+LONG-TERM:
+  7. Model server architecture (share single model)
+  8. Reduce model size (7B→5B or 3B)
+  9. Multi-GPU setup (if available)
+
+TESTING PROTOCOL
+────────────────
+Test 1: Memory Stress
+  watch -n 1 'free -h && nvidia-smi'
+  Expected: RAM ~28-30GB, GPU ~65-75%
+
+Test 2: Simultaneous Inference
+  Verify all 3 can infer without exceeding limits
+
+Test 3: Thread Restart
+  Kill AI thread, verify restart behavior
+
+Test 4: Long-Running (24h)
+  Monitor crash counts, memory leaks, stability
+
+PRODUCTION COMMAND
+──────────────────
+Current (6GB/7GB/7GB - conservative):
+  python3 -m src.scripts.run_with_web \
+    --mode matrix \
+    --model models/mistral-7b-instruct-v0.2.Q4_K_M.gguf \
+    --web-host 127.0.0.1 \
+    --web-port 8095 \
+    --ram-limit-subject 6.0 \
+    --ram-limit-observer 7.0 \
+    --ram-limit-god 7.0
+
+Alternative - Single Instance (more stable):
+  python3 -m src.scripts.run_with_web \
+    --mode single \
+    --model models/mistral-7b-instruct-v0.2.Q4_K_M.gguf \
+    --web-host 127.0.0.1 \
+    --web-port 8095 \
+    --ram-limit-subject 12.0
+
+FILES & LINE NUMBERS
+────────────────────
+run_with_web.py:
+  - Matrix mode setup: lines 223-256
+  - Instance management: lines 22-120
+  - Thread monitoring: lines 84-104
+
+neural_link.py:
+  - Constructor (RAM setup): lines 41-55
+  - GPU watchdog: lines 92-97
+  - Model loading: lines 109-152
+  - Network setup: lines 154-198
+  - Crash handling: lines 455-501
+  - Main loop: lines 374-453
+
+network_protocol.py:
+  - NetworkProtocol class: lines 16-204
+  - SurveillanceMode class: lines 206-263
+
+gpu_watchdog.py:
+  - GPU memory check: lines 47-90
+  - Monitoring loop: lines 119-152
+  - Process killing: lines 154-169
+
+brain-in-jar.service:
+  - Resource limits: lines 42-46
+  - Startup command: lines 21-28
+
+═════════════════════════════════════════════════════════════════════════════
+Full analysis: /home/user/brain-in-jar/MATRIX_MODE_ANALYSIS.md
+═════════════════════════════════════════════════════════════════════════════

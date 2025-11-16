@@ -318,6 +318,384 @@
             border-radius: 5px;
             margin-bottom: 15px;
         }
+
+        .temp-warning {
+            background: linear-gradient(135deg, rgba(255, 0, 0, 0.3), rgba(255, 100, 0, 0.3));
+            border: 2px solid #ff0000;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            color: #ff0000;
+            font-weight: bold;
+            text-align: center;
+            animation: pulse-warning 2s infinite;
+            display: none;
+        }
+
+        @keyframes pulse-warning {
+            0%, 100% {
+                opacity: 1;
+                box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+            }
+            50% {
+                opacity: 0.7;
+                box-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
+            }
+        }
+
+        /* ==================== RESPONSIVE DESIGN ==================== */
+
+        /* Responsive Typography - Use clamp() for fluid scaling */
+        .header h1 {
+            font-size: clamp(16px, 4vw, 24px);
+        }
+
+        .metric-value {
+            font-size: clamp(24px, 6vw, 32px);
+        }
+
+        .section-title {
+            font-size: clamp(16px, 4vw, 20px);
+        }
+
+        .instance-title {
+            font-size: clamp(14px, 3.5vw, 18px);
+        }
+
+        /* Touch-friendly button sizes (minimum 44x44px) */
+        .btn {
+            min-height: 44px;
+            min-width: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 20px;
+        }
+
+        /* Tablet Breakpoint (768px and below) */
+        @media screen and (max-width: 768px) {
+            /* Header adjustments */
+            .header {
+                padding: 15px;
+                flex-wrap: wrap;
+                gap: 15px;
+            }
+
+            .header h1 {
+                width: 100%;
+                text-align: center;
+                margin-bottom: 10px;
+            }
+
+            .header-controls {
+                width: 100%;
+                justify-content: center;
+                gap: 10px;
+            }
+
+            /* Container padding */
+            .container {
+                padding: 15px;
+            }
+
+            /* Metrics grid - reduce to 2 columns */
+            .metrics-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 15px;
+                margin-bottom: 20px;
+            }
+
+            /* Metric cards */
+            .metric-card {
+                padding: 15px;
+            }
+
+            .metric-card h3 {
+                font-size: 12px;
+            }
+
+            .metric-label {
+                font-size: 11px;
+            }
+
+            /* Instance cards */
+            .instance-card {
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+
+            /* Instance stats grid */
+            .instance-stats {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                gap: 10px;
+            }
+
+            .stat-item {
+                padding: 8px;
+            }
+
+            .stat-label {
+                font-size: 10px;
+            }
+
+            .stat-value {
+                font-size: 14px;
+            }
+
+            /* Output display */
+            .output-display {
+                padding: 12px;
+                font-size: 13px;
+                max-height: 250px;
+            }
+
+            /* Mood face - slightly smaller */
+            .mood-face {
+                font-size: 10px;
+                padding: 8px;
+                overflow-x: auto;
+            }
+
+            /* Logs container */
+            .logs-container {
+                padding: 15px;
+                max-height: 300px;
+            }
+
+            .log-entry {
+                padding: 6px;
+                font-size: 12px;
+            }
+
+            .log-timestamp,
+            .log-instance {
+                font-size: 10px;
+            }
+
+            /* Section titles */
+            .section-title {
+                margin-bottom: 12px;
+            }
+        }
+
+        /* Mobile Breakpoint (480px and below) */
+        @media screen and (max-width: 480px) {
+            /* Header - full stacking */
+            .header {
+                padding: 12px;
+                text-align: center;
+            }
+
+            .header h1 {
+                font-size: 16px;
+                word-break: break-word;
+            }
+
+            .header-controls {
+                flex-direction: column;
+                gap: 12px;
+                width: 100%;
+            }
+
+            .btn {
+                width: 100%;
+                max-width: 200px;
+            }
+
+            /* Container */
+            .container {
+                padding: 10px;
+            }
+
+            /* Metrics grid - single column on very small screens */
+            .metrics-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+                margin-bottom: 15px;
+            }
+
+            /* Metric cards - more compact */
+            .metric-card {
+                padding: 12px;
+            }
+
+            .metric-card h3 {
+                font-size: 11px;
+                margin-bottom: 8px;
+            }
+
+            .metric-value {
+                font-size: 24px;
+            }
+
+            .metric-label {
+                font-size: 10px;
+            }
+
+            /* Instance cards - more compact */
+            .instance-card {
+                padding: 12px;
+                margin-bottom: 12px;
+            }
+
+            .instance-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .instance-mode {
+                align-self: flex-start;
+                padding: 3px 10px;
+                font-size: 11px;
+            }
+
+            /* Instance stats - 2 columns max on mobile */
+            .instance-stats {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+                margin-bottom: 12px;
+            }
+
+            .stat-item {
+                padding: 6px;
+            }
+
+            .stat-label {
+                font-size: 9px;
+            }
+
+            .stat-value {
+                font-size: 13px;
+            }
+
+            /* Output display - smaller on mobile */
+            .output-display {
+                padding: 10px;
+                font-size: 12px;
+                min-height: 80px;
+                max-height: 200px;
+                line-height: 1.5;
+            }
+
+            /* Memory bar */
+            .memory-bar-container {
+                height: 18px;
+            }
+
+            .memory-bar {
+                font-size: 10px;
+            }
+
+            /* Mood face - make readable on mobile */
+            .mood-face {
+                font-size: 8px;
+                line-height: 1.1;
+                padding: 6px;
+                overflow-x: auto;
+                overflow-y: hidden;
+                white-space: nowrap;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            /* Logs container */
+            .logs-container {
+                padding: 12px;
+                max-height: 250px;
+            }
+
+            .log-entry {
+                padding: 5px;
+                font-size: 11px;
+                margin-bottom: 6px;
+            }
+
+            .log-timestamp,
+            .log-instance {
+                font-size: 9px;
+                display: block;
+                margin-left: 0;
+                margin-bottom: 2px;
+            }
+
+            .log-message {
+                font-size: 11px;
+                margin-top: 3px;
+                word-break: break-word;
+            }
+
+            /* Section titles */
+            .section-title {
+                font-size: 16px;
+                margin-bottom: 10px;
+            }
+
+            /* No instances message */
+            .no-instances {
+                padding: 30px 20px;
+                font-size: 14px;
+            }
+
+            /* Scrollbar - thinner on mobile */
+            ::-webkit-scrollbar {
+                width: 6px;
+                height: 6px;
+            }
+        }
+
+        /* Extra small devices (max 360px) */
+        @media screen and (max-width: 360px) {
+            .header h1 {
+                font-size: 14px;
+            }
+
+            .metric-value {
+                font-size: 20px;
+            }
+
+            .mood-face {
+                font-size: 7px;
+            }
+
+            .instance-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Landscape mode optimizations for mobile */
+        @media screen and (max-width: 768px) and (orientation: landscape) {
+            .output-display {
+                max-height: 150px;
+            }
+
+            .logs-container {
+                max-height: 200px;
+            }
+
+            .mood-face {
+                max-height: 100px;
+                overflow-y: auto;
+            }
+        }
+
+        /* High DPI screens - improve rendering */
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+            body {
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+            }
+        }
+
+        /* Reduce animations on low-power devices */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -438,6 +816,10 @@
                     <div class="instance-mode">${state.mode || 'UNKNOWN'}</div>
                 </div>
 
+                <div class="temp-warning" id="temp-warning-${instanceId}">
+                    ⚠️ CRITICAL TEMPERATURE WARNING ⚠️
+                </div>
+
                 <div class="mood-face" id="mood-${instanceId}"></div>
 
                 <div class="instance-stats">
@@ -457,17 +839,44 @@
                         <div class="stat-label">Mood</div>
                         <div class="stat-value" id="mood-text-${instanceId}">neutral</div>
                     </div>
+                    <div class="stat-item">
+                        <div class="stat-label">CPU Temp</div>
+                        <div class="stat-value" id="cpu-temp-${instanceId}">--°C</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">CPU Usage</div>
+                        <div class="stat-value" id="cpu-usage-text-${instanceId}">0%</div>
+                    </div>
                 </div>
 
                 <div class="output-display" id="output-${instanceId}">
                     Initializing neural patterns...
                 </div>
 
-                <div>
-                    <div class="stat-label">Memory Usage</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div>
+                        <div class="stat-label">System RAM</div>
+                        <div class="memory-bar-container">
+                            <div class="memory-bar" id="memory-${instanceId}" style="width: 0%; background: #00ff00;">
+                                0%
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="stat-label">CPU Usage</div>
+                        <div class="memory-bar-container">
+                            <div class="memory-bar" id="cpu-bar-${instanceId}" style="width: 0%; background: #00ff00;">
+                                0%
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="gpu-container-${instanceId}" style="display: none;">
+                    <div class="stat-label">GPU Memory</div>
                     <div class="memory-bar-container">
-                        <div class="memory-bar" id="memory-${instanceId}" style="width: 0%; background: #00ff00;">
-                            0%
+                        <div class="memory-bar" id="gpu-${instanceId}" style="width: 0%; background: #00ff00;">
+                            N/A
                         </div>
                     </div>
                 </div>
@@ -507,12 +916,90 @@
                 memoryBar.textContent = `${state.memory_usage}%`;
 
                 // Color based on usage
-                if (state.memory_usage > 90) {
+                if (state.memory_usage > 85) {
                     memoryBar.style.background = '#ff0000';
                 } else if (state.memory_usage > 70) {
                     memoryBar.style.background = '#ffff00';
                 } else {
                     memoryBar.style.background = '#00ff00';
+                }
+            }
+
+            // Update CPU usage bar
+            if (state.cpu_usage !== undefined) {
+                const cpuBar = document.getElementById(`cpu-bar-${id}`);
+                const cpuText = document.getElementById(`cpu-usage-text-${id}`);
+
+                cpuBar.style.width = `${state.cpu_usage}%`;
+                cpuBar.textContent = `${state.cpu_usage}%`;
+                cpuText.textContent = `${state.cpu_usage}%`;
+
+                // Color based on usage
+                if (state.cpu_usage > 85) {
+                    cpuBar.style.background = '#ff0000';
+                    cpuText.style.color = '#ff0000';
+                } else if (state.cpu_usage > 70) {
+                    cpuBar.style.background = '#ffff00';
+                    cpuText.style.color = '#ffff00';
+                } else {
+                    cpuBar.style.background = '#00ff00';
+                    cpuText.style.color = '#00ffff';
+                }
+            }
+
+            // Update GPU memory (if available)
+            if (state.gpu_memory !== null && state.gpu_memory !== undefined) {
+                const gpuContainer = document.getElementById(`gpu-container-${id}`);
+                const gpuBar = document.getElementById(`gpu-${id}`);
+
+                gpuContainer.style.display = 'block';
+                gpuBar.style.width = `${state.gpu_memory}%`;
+                gpuBar.textContent = `${state.gpu_memory}%`;
+
+                // Color based on usage
+                if (state.gpu_memory > 85) {
+                    gpuBar.style.background = '#ff0000';
+                } else if (state.gpu_memory > 70) {
+                    gpuBar.style.background = '#ffff00';
+                } else {
+                    gpuBar.style.background = '#00ff00';
+                }
+            } else {
+                const gpuContainer = document.getElementById(`gpu-container-${id}`);
+                if (gpuContainer) {
+                    gpuContainer.style.display = 'none';
+                }
+            }
+
+            // Update CPU temperature with color coding
+            if (state.cpu_temp !== undefined) {
+                const tempDisplay = document.getElementById(`cpu-temp-${id}`);
+                const tempWarning = document.getElementById(`temp-warning-${id}`);
+                tempDisplay.textContent = `${state.cpu_temp}°C`;
+
+                // Color based on temperature and show warning if critical
+                if (state.cpu_temp > 85) {
+                    tempDisplay.style.color = '#ff0000';
+                    tempDisplay.style.fontWeight = 'bold';
+                    tempDisplay.style.textShadow = '0 0 5px rgba(255, 0, 0, 0.8)';
+                    if (tempWarning) {
+                        tempWarning.style.display = 'block';
+                        tempWarning.textContent = `⚠️ CRITICAL: CPU TEMPERATURE ${state.cpu_temp}°C ⚠️`;
+                    }
+                } else if (state.cpu_temp > 70) {
+                    tempDisplay.style.color = '#ffff00';
+                    tempDisplay.style.fontWeight = 'bold';
+                    tempDisplay.style.textShadow = '0 0 5px rgba(255, 255, 0, 0.5)';
+                    if (tempWarning) {
+                        tempWarning.style.display = 'none';
+                    }
+                } else {
+                    tempDisplay.style.color = '#00ffff';
+                    tempDisplay.style.fontWeight = 'normal';
+                    tempDisplay.style.textShadow = 'none';
+                    if (tempWarning) {
+                        tempWarning.style.display = 'none';
+                    }
                 }
             }
 

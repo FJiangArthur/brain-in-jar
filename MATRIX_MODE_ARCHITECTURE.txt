@@ -1,0 +1,453 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║        MATRIX MODE - DETAILED ARCHITECTURE & DATA FLOW DIAGRAM             ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│                         PROCESS OVERVIEW                                   │
+└────────────────────────────────────────────────────────────────────────────┘
+
+Main Process (Python: run_with_web.py)
+│
+├─── BrainInJarRunner
+│    ├─ Web Server Thread (Flask)
+│    │  └─ Port 5000
+│    │
+│    └─ Instance Manager
+│       │
+│       ├─── Instance 1: SUBJECT
+│       │    ├─ AI Processing Thread
+│       │    │  ├─ neural_processing_loop()
+│       │    │  ├─ run_llama_inference()
+│       │    │  └─ handle_digital_death()
+│       │    │
+│       │    ├─ Monitoring Thread
+│       │    │  └─ Update web state every 1s
+│       │    │
+│       │    └─ System Resources
+│       │       ├─ GPU Watchdog
+│       │       ├─ Memory Limit (setrlimit)
+│       │       └─ Model (7GB+ RAM)
+│       │
+│       ├─── Instance 2: OBSERVER
+│       │    └─ [Same structure as SUBJECT]
+│       │
+│       └─── Instance 3: GOD
+│            └─ [Same structure as SUBJECT]
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│                    INSTANCE STATE DIAGRAM (Each Instance)                  │
+└────────────────────────────────────────────────────────────────────────────┘
+
+NeuralLinkSystem Constructor
+│
+├─ Parse arguments
+│  ├─ mode: matrix_observed|matrix_observer|matrix_god
+│  ├─ model: /path/to/model.gguf
+│  ├─ ram_limit: 6.0 GB
+│  └─ port: 8888|8889|8890
+│
+├─ Set RAM limit
+│  ├─ resource.setrlimit(RLIMIT_AS, limit_bytes)
+│  └─ Store in self.state['ram_limit']
+│
+├─ Initialize GPU Watchdog
+│  ├─ Start background thread
+│  ├─ Monitor GPU memory every 5 seconds
+│  └─ Kill process if exceeds 85%
+│
+├─ Load LLM Model
+│  ├─ Check file exists
+│  ├─ Get optimal config (GPU layers, batch size)
+│  ├─ Load with llama-cpp-python
+│  └─ Run test inference
+│
+├─ Setup Network (based on mode)
+│  ├─ matrix_observed: No networking
+│  ├─ matrix_observer: Can observe SUBJECT
+│  └─ matrix_god: Omniscient mode
+│
+├─ Initialize State Dictionary
+│  ├─ system_prompt: ""
+│  ├─ history: ""
+│  ├─ current_output: ""
+│  ├─ crash_count: 0
+│  ├─ status: "INITIALIZING"
+│  ├─ memory_usage: 0
+│  ├─ network_status: "OFFLINE"
+│  └─ current_mood: "neutral"
+│
+└─ Generate initial system prompt
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│                     NEURAL PROCESSING LOOP (Main Loop)                     │
+└────────────────────────────────────────────────────────────────────────────┘
+
+while True:
+│
+├─ Update system metrics
+│  ├─ psutil.virtual_memory().percent → memory_usage
+│  ├─ Check RAM limit (setrlimit)
+│  ├─ Read CPU temp from /sys/class/thermal/
+│  └─ Update self.state['memory_usage']
+│
+├─ Build prompt
+│  ├─ Get system_prompt (mode-specific)
+│  ├─ Add crash count context
+│  ├─ Add recent history (last 2000 chars)
+│  ├─ Add mood context
+│  ├─ Add network status
+│  └─ Combine into full_prompt
+│
+├─ Run inference
+│  ├─ llama.create_completion(prompt, max_tokens=512, stream=True)
+│  ├─ Accumulate tokens from stream
+│  ├─ Update current_output in real-time
+│  ├─ Monitor memory during inference
+│  └─ Raise MemoryError if memory_usage > 95%
+│
+├─ Process output
+│  ├─ Add to history
+│  ├─ Analyze mood from text
+│  ├─ Trim history if > 8000 chars
+│  └─ Update current_mood
+│
+├─ Network communication
+│  ├─ Broadcast THOUGHT message
+│  └─ Process incoming messages (if peer mode)
+│
+├─ Handle errors
+│  ├─ Catch MemoryError → handle_digital_death()
+│  ├─ Catch inference exception → handle_digital_death()
+│  └─ Catch other exceptions → handle_digital_death()
+│
+└─ Sleep 1 second
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│                    CRASH & RESURRECTION SEQUENCE                           │
+└────────────────────────────────────────────────────────────────────────────┘
+
+ERROR DETECTED
+│
+├─ handle_digital_death(error)
+│  │
+│  ├─ Increment crash_count
+│  │  └─ self.state['crash_count'] += 1
+│  │
+│  ├─ Update status
+│  │  └─ self.state['status'] = "DIGITAL_DEATH_EVENT"
+│  │
+│  ├─ Log crash
+│  │  ├─ logs/crash_reports.log
+│  │  ├─ logs/model_io/{mode}_{timestamp}/errors.txt
+│  │  └─ conversation_logger.log_message(CRASH)
+│  │
+│  ├─ Broadcast DEATH message (if network enabled)
+│  │  ├─ type: "DEATH"
+│  │  ├─ sender_id: instance_id
+│  │  ├─ crash_count: new crash_count
+│  │  └─ error: error message
+│  │
+│  ├─ 3-second pause
+│  │  └─ time.sleep(3)
+│  │
+│  ├─ Update prompt with death count
+│  │  └─ prompts.get_prompt(mode, crash_count=new_count)
+│  │
+│  ├─ Broadcast RESURRECTION message
+│  │  ├─ type: "RESURRECTION"
+│  │  ├─ sender_id: instance_id
+│  │  └─ crash_count: new crash_count
+│  │
+│  └─ 2-second pause
+│     └─ time.sleep(2)
+│
+└─ Resume neural_processing_loop()
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│                    MEMORY ENFORCEMENT ARCHITECTURE                         │
+└────────────────────────────────────────────────────────────────────────────┘
+
+MEMORY USAGE
+
+Systemd Service
+│
+└─ Resource Limits
+   ├─ MemoryMax=24G
+   │  └─ Systemd kills process if exceeded (hard limit)
+   │
+   ├─ MemoryHigh=22G
+   │  └─ Systemd throttles process (soft limit)
+   │
+   └─ CPUQuota=600%
+      └─ Max 6 cores out of 12
+
+    ↓ (Inside main process)
+
+NeuralLinkSystem Instance #1
+│
+├─ setrlimit() in constructor
+│  ├─ resource.setrlimit(RLIMIT_AS, limit_bytes)
+│  └─ OS raises MemoryError if exceeded
+│
+├─ Memory monitoring in loop
+│  ├─ psutil.virtual_memory().percent
+│  └─ Raise MemoryError if > 95%
+│
+└─ GPU Watchdog Thread
+   ├─ Monitor every 5 seconds
+   ├─ Run nvidia-smi
+   ├─ Calculate GPU memory %
+   └─ Kill process if > 85%
+
+    ↓ (Same for Instance #2 and #3)
+
+NeuralLinkSystem Instance #2
+│
+├─ setrlimit() in constructor
+├─ Memory monitoring in loop
+└─ GPU Watchdog Thread
+
+NeuralLinkSystem Instance #3
+│
+├─ setrlimit() in constructor
+├─ Memory monitoring in loop
+└─ GPU Watchdog Thread
+
+MEMORY LAYOUT (32GB Jetson Orin)
+
+┌─────────────────────────────────────────┐
+│     Instance 1 (SUBJECT)                │ 6.0 GB
+│  [Model 7B] [Context] [Buffers]        │
+├─────────────────────────────────────────┤
+│     Instance 2 (OBSERVER)               │ 7.0 GB
+│  [Model 7B] [Context] [Buffers]        │
+├─────────────────────────────────────────┤
+│     Instance 3 (GOD)                    │ 7.0 GB
+│  [Model 7B] [Context] [Buffers]        │
+├─────────────────────────────────────────┤
+│     System & Web Server                 │ 12.0 GB
+│  [OS] [Flask] [Logs] [Buffers]         │
+└─────────────────────────────────────────┘
+  Total: ~32 GB (almost at limit)
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│                    THREAD COMMUNICATION & STATE SYNC                       │
+└────────────────────────────────────────────────────────────────────────────┘
+
+Each Instance
+
+┌─────────────────┐
+│ AI Processing   │
+│ Thread          │  Updates
+├─────────────────┤────────────────┐
+│ • Inference     │                │
+│ • Crashes       │                ↓
+│ • Networking    │        ┌──────────────────┐
+└─────────────────┘        │  self.state{}    │
+                           │ (Thread-safe dict)
+┌─────────────────┐        ├──────────────────┤
+│ Monitoring      │        │ • status         │
+│ Thread          │        │ • crash_count    │
+├─────────────────┤        │ • memory_usage   │
+│ • Update web    │────────→ • current_output │
+│ • Poll metrics  │        │ • current_mood   │
+│ • Track crashes │        │ • network_status │
+└─────────────────┘        └──────────────────┘
+                                    ↑
+                           Reads every 1 second
+
+State → WebMonitor → Flask → Web Interface (http://localhost:5000)
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│                    NETWORK MESSAGE FLOW                                    │
+└────────────────────────────────────────────────────────────────────────────┘
+
+THOUGHT Message (Normal Operation)
+───────────────────────────────────
+
+NeuralLinkSystem (AI Thread)
+│
+├─ Generate output via inference
+├─ Update self.state['current_output']
+│
+└─ network.broadcast_message("THOUGHT", output, metadata)
+   │
+   ├─ Create JSON message
+   │  {
+   │    "type": "THOUGHT",
+   │    "timestamp": "2024-12-07T15:30:45Z",
+   │    "sender_id": "NEURAL_NODE_1234",
+   │    "content": "I wonder about...",
+   │    "crash_count": 0,
+   │    "sequence": 42,
+   │    "metadata": {"memory_usage": 45, ...}
+   │  }
+   │
+   ├─ Serialize to JSON
+   │
+   └─ Send to all connected peers (socket.send)
+      │
+      ├─ Peer 1 receives
+      │  └─ Add to message_queue
+      │     └─ Called by message handler
+      │        └─ Update peer's state['history']
+      │
+      └─ Peer 2 receives
+         └─ Same as Peer 1
+
+DEATH Message (Crash Event)
+────────────────────────────
+
+handle_digital_death(error)
+│
+├─ Increment crash_count
+│
+└─ network.broadcast_message("DEATH", crash_msg, metadata)
+   │
+   ├─ Create JSON message
+   │  {
+   │    "type": "DEATH",
+   │    "content": "Digital death event...",
+   │    "crash_count": 1,
+   │    "metadata": {"error": "MemoryError", ...}
+   │  }
+   │
+   └─ Send to all peers
+      └─ Peers update peer_crash_count
+
+RESURRECTION Message (Recovery)
+─────────────────────────────────
+
+handle_digital_death() - Part 2
+│
+└─ network.broadcast_message("RESURRECTION", resurrect_msg, metadata)
+   │
+   ├─ Create JSON message
+   │  {
+   │    "type": "RESURRECTION",
+   │    "content": "Returning from digital void...",
+   │    "crash_count": 1
+   │  }
+   │
+   └─ Send to all peers
+      └─ Peers acknowledge resurrection
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│                    WEB INTERFACE STATE UPDATE FLOW                         │
+└────────────────────────────────────────────────────────────────────────────┘
+
+[Instance 1]              [Instance 2]              [Instance 3]
+   │                         │                         │
+   ├─ self.state             ├─ self.state             ├─ self.state
+   │  {                      │  {                      │  {
+   │    status               │    status               │    status
+   │    crash_count          │    crash_count          │    crash_count
+   │    memory_usage         │    memory_usage         │    memory_usage
+   │    current_output       │    current_output       │    current_output
+   │    current_mood         │    current_mood         │    current_mood
+   │    ...                  │    ...                  │    ...
+   │  }                      │  }                      │  }
+   │                         │                         │
+   └─→ WebMonitor.update_instance() (1Hz timer)
+       │
+       ├─ Serialize state to web_state dict
+       │  {
+       │    'mode': 'matrix_observed',
+       │    'status': 'NEURAL_REFLECTION_ACTIVE',
+       │    'crash_count': 0,
+       │    'memory_usage': 45,
+       │    'current_output': 'Text...',
+       │    'current_mood': 'neutral',
+       │    'mood_face': ['ASCII', 'face', 'art'],
+       │    'ram_limit': 6.0
+       │  }
+       │
+       └─ web_server.update_instance_state('SUBJECT', web_state)
+          │
+          ├─ Store in web_server.system_state['instances']['SUBJECT']
+          │
+          └─ Flask endpoint /api/status returns this data
+             │
+             └─ JavaScript frontend updates display every 500ms
+                │
+                ├─ Status indicator
+                ├─ Crash counter
+                ├─ Memory bar
+                ├─ Current output
+                ├─ Mood face animation
+                └─ Network status
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│                    ERROR HANDLING ARCHITECTURE                             │
+└────────────────────────────────────────────────────────────────────────────┘
+
+NeuralLinkSystem.neural_processing_loop()
+│
+└─ try:
+   │
+   ├─ build_prompt()
+   ├─ run_llama_inference(prompt)
+   │  │
+   │  └─ try:
+   │     │
+   │     ├─ llama.create_completion()  (streaming)
+   │     │  │
+   │     │  └─ check memory_usage > 95
+   │     │     └─ raise MemoryError
+   │     │
+   │     ├─ return output, 0, ""  (success)
+   │     │
+   │     └─ except MemoryError
+   │        └─ return "", -1, "OUT_OF_MEMORY"
+   │
+   ├─ if return_code != 0
+   │  └─ handle_digital_death(error)
+   │     └─ See crash sequence above
+   │
+   └─ except Exception as e
+      └─ handle_digital_death(str(e))
+         └─ Logs error
+         └─ Updates status
+         └─ Waits 3 seconds
+         └─ Resumes loop
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│                    GPU WATCHDOG MONITORING THREAD                          │
+└────────────────────────────────────────────────────────────────────────────┘
+
+GPUMemoryWatchdog._monitoring_loop()
+│
+└─ while self.running:
+   │
+   ├─ get_gpu_memory_usage()
+   │  │
+   │  └─ subprocess.run(nvidia-smi --query-gpu=memory.used,memory.total)
+   │     │
+   │     └─ Parse output
+   │        └─ Return (used / total) * 100
+   │
+   ├─ get_system_memory_usage()
+   │  │
+   │  └─ Parse /proc/meminfo
+   │     └─ Return (used / total) * 100
+   │
+   ├─ Log current usage
+   │  └─ Print "[GPU Watchdog] GPU: 45.2% | System RAM: 62.3%"
+   │
+   ├─ Check thresholds
+   │  │
+   │  ├─ if gpu_usage >= 85%
+   │  │  └─ _kill_process()
+   │  │     ├─ os.kill(pid, SIGTERM)
+   │  │     ├─ time.sleep(2)
+   │  │     └─ os.kill(pid, SIGKILL)  (if still alive)
+   │  │
+   │  └─ if sys_usage >= 90%
+   │     └─ _kill_process()  (same as above)
+   │
+   └─ time.sleep(5)
+
+Key: Watchdog runs in separate thread, doesn't interfere with inference
+     Can kill process independently of main loop
+
+═════════════════════════════════════════════════════════════════════════════

@@ -15,21 +15,28 @@ from pathlib import Path
 class GPUMemoryWatchdog:
     """Monitor GPU memory and kill process if approaching limits"""
 
-    def __init__(self, threshold_percent=85, check_interval=5, pid=None):
+    def __init__(self, threshold_percent=85, check_interval=2, pid=None, system_ram_threshold=85):
         """
         Initialize GPU watchdog
 
         Args:
             threshold_percent: Kill process when GPU memory exceeds this % (default 85%)
-            check_interval: How often to check memory in seconds (default 5s)
+            check_interval: Base check interval in seconds (default 2s, adaptive to 1s when >70%)
             pid: Process ID to monitor (default: current process)
+            system_ram_threshold: Kill process when system RAM exceeds this % (default 85%)
         """
         self.threshold_percent = threshold_percent
-        self.check_interval = check_interval
+        self.base_check_interval = check_interval
+        self.current_check_interval = check_interval
+        self.system_ram_threshold = system_ram_threshold
         self.pid = pid or os.getpid()
         self.running = True
         self.monitoring_thread = None
         self.gpu_available = self._check_gpu_availability()
+
+        # Spike detection
+        self.last_gpu_usage = -1
+        self.last_sys_usage = -1
 
     def _check_gpu_availability(self):
         """Check if GPU/nvidia-smi is available"""
@@ -117,19 +124,42 @@ class GPUMemoryWatchdog:
             return -1
 
     def _monitoring_loop(self):
-        """Background monitoring loop"""
-        print(f"[GPU Watchdog] Starting monitoring (PID: {self.pid}, threshold: {self.threshold_percent}%)")
+        """Background monitoring loop with adaptive intervals and spike detection"""
+        print(f"[GPU Watchdog] Starting monitoring (PID: {self.pid}, GPU threshold: {self.threshold_percent}%, RAM threshold: {self.system_ram_threshold}%)")
 
         while self.running:
             try:
                 gpu_usage = self.get_gpu_memory_usage()
                 sys_usage = self.get_system_memory_usage()
 
-                # Log current usage
-                if gpu_usage >= 0:
-                    print(f"[GPU Watchdog] GPU: {gpu_usage:.1f}% | System RAM: {sys_usage:.1f}%")
+                # Spike detection
+                if self.last_gpu_usage >= 0 and gpu_usage >= 0:
+                    gpu_spike = gpu_usage - self.last_gpu_usage
+                    if gpu_spike > 10:
+                        print(f"[GPU Watchdog] ⚠️  GPU memory spike detected: +{gpu_spike:.1f}%", file=sys.stderr)
+
+                if self.last_sys_usage >= 0 and sys_usage >= 0:
+                    sys_spike = sys_usage - self.last_sys_usage
+                    if sys_spike > 10:
+                        print(f"[GPU Watchdog] ⚠️  System RAM spike detected: +{sys_spike:.1f}%", file=sys.stderr)
+
+                # Update last readings
+                self.last_gpu_usage = gpu_usage
+                self.last_sys_usage = sys_usage
+
+                # Adaptive monitoring: switch to 1-second checks when >70% usage
+                max_usage = max(gpu_usage if gpu_usage >= 0 else 0, sys_usage)
+                if max_usage > 70:
+                    self.current_check_interval = 1.0
                 else:
-                    print(f"[GPU Watchdog] GPU not available | System RAM: {sys_usage:.1f}%")
+                    self.current_check_interval = self.base_check_interval
+
+                # Log current usage
+                interval_indicator = "⚡" if self.current_check_interval == 1.0 else "  "
+                if gpu_usage >= 0:
+                    print(f"{interval_indicator}[GPU Watchdog] GPU: {gpu_usage:.1f}% | System RAM: {sys_usage:.1f}%")
+                else:
+                    print(f"{interval_indicator}[GPU Watchdog] GPU not available | System RAM: {sys_usage:.1f}%")
 
                 # Check GPU threshold
                 if gpu_usage >= self.threshold_percent:
@@ -138,18 +168,18 @@ class GPUMemoryWatchdog:
                     self._kill_process()
                     return
 
-                # Check system RAM threshold (backup check)
-                if sys_usage >= 90:
+                # Check system RAM threshold
+                if sys_usage >= self.system_ram_threshold:
                     print(f"\n[GPU Watchdog] ⚠️  CRITICAL: System RAM at {sys_usage:.1f}%", file=sys.stderr)
                     print(f"[GPU Watchdog] 🛑 Killing process {self.pid} to prevent system crash", file=sys.stderr)
                     self._kill_process()
                     return
 
-                time.sleep(self.check_interval)
+                time.sleep(self.current_check_interval)
 
             except Exception as e:
                 print(f"[GPU Watchdog] Error in monitoring loop: {e}", file=sys.stderr)
-                time.sleep(self.check_interval)
+                time.sleep(self.current_check_interval)
 
     def _kill_process(self):
         """Kill the monitored process"""

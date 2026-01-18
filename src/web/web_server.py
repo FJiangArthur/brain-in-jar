@@ -38,7 +38,16 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
 CORS(app, supports_credentials=True)
 
 # SocketIO for real-time updates
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
+# Use eventlet for better stability and add ping settings to prevent disconnections
+socketio = SocketIO(
+    app,
+    cors_allowed_origins="*",
+    async_mode='eventlet',
+    ping_timeout=120,  # 2 minutes before timeout
+    ping_interval=25,  # Send ping every 25 seconds
+    logger=False,
+    engineio_logger=False
+)
 
 # Global state store (will be updated by neural link system)
 system_state = {
@@ -362,7 +371,7 @@ def update_metrics(metrics):
     socketio.emit('metrics_update', system_state['metrics'])
 
 
-def run_server(host='0.0.0.0', port=5000, debug=False):
+def run_server(host='0.0.0.0', port=8095, debug=False):
     """Run the web server"""
     print(f"Starting Brain in a Jar web server on {host}:{port}")
     print(f"Default password hash: {DEFAULT_PASSWORD_HASH}")

@@ -34,6 +34,16 @@ class ModelConfig:
     def _get_gpu_memory(self):
         """Get total GPU memory in MB"""
         try:
+            # Check if on Jetson (unified memory architecture)
+            if os.path.exists('/etc/nv_tegra_release'):
+                # Jetson devices use unified memory - estimate available GPU memory
+                # Use 80% of system RAM as available for GPU operations
+                system_ram_gb = self.system_memory_gb
+                estimated_gpu_mb = int(system_ram_gb * 1024 * 0.8)
+                print(f"  [Jetson Unified Memory] Estimating {estimated_gpu_mb} MB available for GPU")
+                return estimated_gpu_mb
+
+            # Standard NVIDIA GPU with dedicated memory
             result = subprocess.run(
                 ['nvidia-smi', '--query-gpu=memory.total', '--format=csv,noheader,nounits'],
                 capture_output=True,
@@ -41,7 +51,9 @@ class ModelConfig:
                 timeout=5
             )
             if result.returncode == 0:
-                return int(float(result.stdout.strip()))
+                memory_str = result.stdout.strip()
+                if memory_str != '[N/A]':
+                    return int(float(memory_str))
             return 0
         except (FileNotFoundError, subprocess.TimeoutExpired, ValueError, Exception):
             return 0
@@ -53,17 +65,23 @@ class ModelConfig:
         except Exception:
             return 8.0  # Default fallback
 
-    def get_optimal_config(self, model_size_gb=None, conservative=True):
+    def get_optimal_config(self, model_size_gb=None, conservative=True, concurrent_models=1, matrix_role=None):
         """
         Get optimal model configuration
 
         Args:
             model_size_gb: Approximate model size in GB (auto-detect if None)
             conservative: Use conservative settings to prevent OOM (default True)
+            concurrent_models: Number of models running simultaneously (1-3)
+            matrix_role: For matrix mode, instance role ('subject', 'observer', 'god')
 
         Returns:
             dict: Configuration parameters for llama-cpp-python
         """
+        # Use Jetson-specific preset if detected
+        if os.path.exists('/etc/nv_tegra_release'):
+            return self.get_jetson_orin_config(concurrent_models=concurrent_models, matrix_role=matrix_role)
+
         config = {
             'n_ctx': 2048,        # Context window
             'n_batch': 256,       # Batch size
@@ -155,15 +173,41 @@ class ModelConfig:
 
         return config
 
-    def get_jetson_orin_config(self):
-        """Get optimized config for Jetson Orin AGX"""
-        print("\n[ModelConfig] Using Jetson Orin AGX preset")
+    def get_jetson_orin_config(self, concurrent_models=1, matrix_role=None):
+        """
+        Get optimized config for Jetson Orin AGX
+
+        Args:
+            concurrent_models: Number of models running simultaneously (1-3)
+                1 = single/isolated mode
+                2 = peer mode
+                3 = matrix mode (Subject/Observer/GOD)
+            matrix_role: For matrix mode, specify role ('subject', 'observer', 'god')
+                to allocate GPU layers hierarchically
+        """
+        print(f"\n[ModelConfig] Using Jetson Orin AGX preset (concurrent_models={concurrent_models})")
+
+        # Adjust GPU layers based on how many models will be loaded
+        if concurrent_models >= 3:
+            # Matrix mode: 3 models - use CPU-only to avoid OOM on Jetson
+            # The Jetson Orin has 12 CPU cores and plenty of RAM for 3 models
+            gpu_layers = 0  # CPU-only for all instances in matrix mode
+            print(f"  [Matrix Mode] Using {gpu_layers} GPU layers (CPU-only for stability with 3 models)")
+            print(f"  [Matrix Mode] Role: {matrix_role.upper() if matrix_role else 'UNKNOWN'}")
+        elif concurrent_models == 2:
+            # Peer mode: 2 models - moderate GPU usage
+            gpu_layers = 12  # ~12 layers per model = ~24 total
+            print(f"  [Peer Mode] Using {gpu_layers} GPU layers to support 2 concurrent models")
+        else:
+            # Single model: can use more GPU layers
+            gpu_layers = 25  # Maximum for single model
+            print(f"  [Single Mode] Using {gpu_layers} GPU layers for single model")
 
         return {
             'n_ctx': 2048,         # Conservative context
             'n_batch': 256,        # Moderate batch size
             'n_threads': 6,        # 6 of 12 cores
-            'n_gpu_layers': 20,    # Hybrid: ~20 layers on GPU, rest on CPU
+            'n_gpu_layers': gpu_layers,
             'verbose': True,
             'use_mmap': True,
             'use_mlock': False,    # Don't lock memory

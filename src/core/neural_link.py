@@ -24,6 +24,7 @@ from src.utils.network_protocol import NetworkProtocol, SurveillanceMode
 from src.utils.dystopian_prompts import DystopianPrompts
 from src.utils.memory_limit import set_memory_limit
 from src.utils.gpu_watchdog import GPUMemoryWatchdog
+from src.utils.thermal_watchdog import ThermalWatchdog
 from src.utils.model_config import ModelConfig
 from src.ui.ascii_art import VisualCortex, CYBERPUNK_BANNER, SURVEILLANCE_BANNER, create_glitch_text, create_memory_bar
 from src.utils.conversation_logger import ConversationLogger
@@ -90,11 +91,20 @@ class NeuralLinkSystem:
 
         # Initialize GPU watchdog (prevents OOM crashes)
         self.gpu_watchdog = GPUMemoryWatchdog(
-            threshold_percent=85,  # Kill process at 85% GPU memory
-            check_interval=5       # Check every 5 seconds
+            threshold_percent=85,     # Kill process at 85% GPU memory
+            check_interval=2,         # Base check interval (adaptive to 1s when >70%)
+            system_ram_threshold=85   # Kill process at 85% system RAM
         )
         self.gpu_watchdog.start()
-        self.console.print("[yellow]GPU Watchdog started - will terminate if memory exceeds 85%[/yellow]")
+        self.console.print("[yellow]GPU Watchdog started - adaptive monitoring (85% threshold)[/yellow]")
+
+        # Initialize thermal watchdog (prevents hardware damage)
+        self.thermal_watchdog = ThermalWatchdog(
+            threshold_celsius=85,  # Kill process at 85°C
+            check_interval=5       # Check every 5 seconds
+        )
+        self.thermal_watchdog.start()
+        self.console.print("[yellow]Thermal Watchdog started - will terminate if temperature exceeds 85°C[/yellow]")
 
         # LLM instance
         self.llama = None
@@ -117,8 +127,25 @@ class NeuralLinkSystem:
                 raise FileNotFoundError(f"Model file not found: {self.args.model}")
             
             # Get optimal model configuration based on available hardware
+            # Determine concurrent models and role based on mode
+            if self.args.mode.startswith('matrix_'):
+                concurrent_models = 3  # Matrix mode: Subject, Observer, GOD
+                # Extract role from mode (matrix_observed -> subject, matrix_observer -> observer, matrix_god -> god)
+                if 'god' in self.args.mode:
+                    matrix_role = 'god'
+                elif 'observer' in self.args.mode:
+                    matrix_role = 'observer'
+                else:
+                    matrix_role = 'subject'
+            elif self.args.mode == 'peer':
+                concurrent_models = 2  # Peer mode: 2 instances
+                matrix_role = None
+            else:
+                concurrent_models = 1  # Single/isolated mode
+                matrix_role = None
+
             model_config = ModelConfig()
-            config = model_config.get_optimal_config(conservative=True)
+            config = model_config.get_optimal_config(conservative=True, concurrent_models=concurrent_models, matrix_role=matrix_role)
 
             # Hybrid CPU+GPU offloading (prevents OOM crashes)
             self.llama = Llama(
@@ -686,6 +713,11 @@ class NeuralLinkSystem:
         if hasattr(self, 'gpu_watchdog'):
             self.gpu_watchdog.stop()
             self.console.print("[yellow]GPU Watchdog stopped[/yellow]")
+
+        # Stop thermal watchdog
+        if hasattr(self, 'thermal_watchdog'):
+            self.thermal_watchdog.stop()
+            self.console.print("[yellow]Thermal Watchdog stopped[/yellow]")
 
         # End conversation session
         self.conversation_logger.end_session(self.session_id)  # Fixed: end_session only takes session_id

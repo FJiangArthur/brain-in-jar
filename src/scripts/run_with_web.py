@@ -136,8 +136,8 @@ def parse_runner_arguments():
     parser.add_argument(
         '--web-port',
         type=int,
-        default=5000,
-        help='Web server port (default: 5000)'
+        default=8095,
+        help='Web server port (default: 8095)'
     )
 
     parser.add_argument(
@@ -151,8 +151,26 @@ def parse_runner_arguments():
     parser.add_argument(
         '--model',
         type=str,
-        required=True,
-        help='Path to GGUF model file'
+        required=False,
+        help='Path to GGUF model file (used for single/peer modes, or all tiers if tier-specific models not provided)'
+    )
+
+    parser.add_argument(
+        '--model-subject',
+        type=str,
+        help='Path to GGUF model for Subject instance (matrix mode only)'
+    )
+
+    parser.add_argument(
+        '--model-observer',
+        type=str,
+        help='Path to GGUF model for Observer instance (matrix mode only)'
+    )
+
+    parser.add_argument(
+        '--model-god',
+        type=str,
+        help='Path to GGUF model for GOD instance (matrix mode only)'
     )
 
     parser.add_argument(
@@ -222,11 +240,28 @@ def main():
 
     elif runner_args.mode == 'matrix':
         # Matrix mode: GOD watching Observer watching Subject
+        # Use tier-specific models if provided, otherwise fall back to single model
 
-        # Subject (doesn't know it's being watched)
+        model_subject = runner_args.model_subject or runner_args.model
+        model_observer = runner_args.model_observer or runner_args.model
+        model_god = runner_args.model_god or runner_args.model
+
+        if not model_subject or not model_observer or not model_god:
+            print("ERROR: Matrix mode requires --model or all of --model-subject, --model-observer, --model-god")
+            sys.exit(1)
+
+        print("\n" + "="*60)
+        print("MATRIX HIERARCHY CONFIGURATION:")
+        print("="*60)
+        print(f"  SUBJECT  : {os.path.basename(model_subject)} ({runner_args.ram_limit_subject}GB RAM)")
+        print(f"  OBSERVER : {os.path.basename(model_observer)} ({runner_args.ram_limit_observer}GB RAM)")
+        print(f"  GOD      : {os.path.basename(model_god)} ({runner_args.ram_limit_god}GB RAM)")
+        print("="*60 + "\n")
+
+        # Subject (doesn't know it's being watched) - Smallest model
         args_subject = create_neural_args(
             'matrix_observed',
-            runner_args.model,
+            model_subject,
             ram_limit=runner_args.ram_limit_subject,
             port=8888
         )
@@ -234,10 +269,10 @@ def main():
 
         time.sleep(2)
 
-        # Observer (watches subject)
+        # Observer (watches subject) - Medium model
         args_observer = create_neural_args(
             'matrix_observer',
-            runner_args.model,
+            model_observer,
             ram_limit=runner_args.ram_limit_observer,
             target_ip='127.0.0.1',
             port=8889
@@ -246,10 +281,10 @@ def main():
 
         time.sleep(2)
 
-        # GOD (watches everything)
+        # GOD (watches everything) - Largest model
         args_god = create_neural_args(
             'matrix_god',
-            runner_args.model,
+            model_god,
             ram_limit=runner_args.ram_limit_god,
             port=8890
         )

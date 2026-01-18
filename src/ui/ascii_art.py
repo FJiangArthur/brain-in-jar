@@ -7,6 +7,7 @@ import random
 import time
 from typing import List, Dict
 from src.core.emotion_engine import Emotion, EmotionEngine
+from src.ui.hd_ascii_art import get_hd_mood_face, get_animated_hd_face, get_compact_face
 
 CYBERPUNK_BANNER = """
 ╔══════════════════════════════════════════════════════════════════════════════╗
@@ -368,10 +369,12 @@ def create_mood_transition(from_mood: str, to_mood: str, progress: float) -> lis
 
 class VisualCortex:
     """Handles ASCII art visualization and animation"""
-    
-    def __init__(self, width=80, height=24):
+
+    def __init__(self, width=80, height=24, mode="isolated", use_hd=True):
         self.width = width
         self.height = height
+        self.mode = mode  # Operating mode (isolated, observer, matrix_god, peer, etc.)
+        self.use_hd = use_hd  # Use high-definition ASCII art
         self.emotion_engine = EmotionEngine()
         self.current_emotion = self.emotion_engine.current_emotion
         self.frame_count = 0
@@ -404,9 +407,30 @@ class VisualCortex:
 
     def get_current_mood_face(self, animated: bool = False) -> List[str]:
         """Get current mood face with optional animation"""
-        if animated:
-            return self.get_animated_face(self.current_emotion.name.lower())
-        return self.get_mood_face(self.current_emotion.name.lower())
+        current_mood = self.current_emotion.name.lower()
+
+        # Map emotion engine moods to HD moods
+        mood_mapping = {
+            "happy": "peaceful",
+            "sad": "existential",
+            "thinking": "thoughtful",
+            "worried": "anxious",
+            "confused": "curious",
+            "neutral": "neutral"
+        }
+
+        mapped_mood = mood_mapping.get(current_mood, current_mood)
+
+        # Use HD ASCII if enabled
+        if self.use_hd:
+            if animated:
+                return get_animated_hd_face(mapped_mood, self.mode, self.current_frame)
+            return get_hd_mood_face(mapped_mood, self.mode)
+        else:
+            # Fallback to original ASCII
+            if animated:
+                return self.get_animated_face(current_mood)
+            return self.get_mood_face(current_mood)
 
     def analyze_text_for_mood(self, text: str, context: Dict) -> str:
         """Analyze text to determine mood"""

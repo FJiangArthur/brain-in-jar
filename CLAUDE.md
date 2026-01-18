@@ -46,6 +46,11 @@ The project deliberately subjects AI models to existential constraints:
    - JWT authentication, rate limiting, CORS protection
    - Monitors multiple AI instances simultaneously
 
+7. **Vision System** (`vision/`)
+   - Experimental visual processing capabilities
+   - Camera integration for future multimodal experiments
+   - Not required for core functionality
+
 ### Key Architectural Patterns
 
 **Matrix Mode Hierarchy**: Three-tier conceptual structure
@@ -62,11 +67,13 @@ Each tier uses different prompts to create psychological framing despite not hav
 4. Resurrection message, broadcast RESURRECTION
 5. Neural processing resumes with updated existential context
 
-**Conversation Logging**: All interactions logged to `logs/model_io/{mode}_{timestamp}/` with:
-- `full_log.jsonl` - Complete metadata (crash count, memory, mood, network status)
-- `llm_outputs.txt` - Human-readable output stream
-- `prompts.txt` - Full prompts sent to model
-- `errors.txt` - Error events
+**Conversation Logging**: All interactions logged to multiple locations:
+- `logs/model_io/{mode}_{timestamp}/` - Per-session directories containing:
+  - `full_log.jsonl` - Complete metadata (crash count, memory, mood, network status)
+  - `llm_outputs.txt` - Human-readable output stream
+  - `prompts.txt` - Full prompts sent to model
+  - `errors.txt` - Error events
+- SQLite database via `ConversationLogger` (`src/utils/conversation_logger.py`) for structured storage and replay capabilities
 
 ## Development Commands
 
@@ -131,12 +138,15 @@ python3 -m src.core.neural_link --model models/your-model.gguf --mode observer -
 # Run all component tests (no model required)
 python -m pytest tests/
 
-# Test neural link components without LLM
+# Test neural link components without LLM (verifies network, state management)
 python -m tests.test_neural_link
 
-# Individual test modules
-python -m pytest tests/test_memory_limit.py
-python -m pytest tests/test_torture_cli.py
+# Test individual components
+python -m pytest tests/test_memory_limit.py  # Memory limit enforcement
+python -m pytest tests/test_torture_cli.py   # CLI interface
+
+# Test GPU watchdog functionality
+python3 -m src.utils.gpu_watchdog  # Runs 10-second monitoring test
 ```
 
 ### Systemd Service (Production on Jetson/Pi)
@@ -154,11 +164,13 @@ sudo journalctl -u brain-in-jar -f
 
 ## Models
 
-Place GGUF format models in `models/` directory. The system auto-detects models in this priority order:
-1. Qwen2.5-1.5B-Instruct-Q4_0.gguf
-2. gemma-3-12b-it-Q4_K_M.gguf
-3. meta-llama-3.1-8b-q4_0.gguf
-4. mistral-7b-instruct-v0.2.Q2_K.gguf
+Place GGUF format models in `models/` directory. If no model is specified via `--model`, the system auto-detects in this priority order:
+1. `Qwen2.5-1.5B-Instruct-Q4_0.gguf` (fastest, smallest)
+2. `gemma-3-12b-it-Q4_K_M.gguf` (high quality, Jetson only)
+3. `meta-llama-3.1-8b-q4_0.gguf` (balanced)
+4. `mistral-7b-instruct-v0.2.Q2_K.gguf` (fallback)
+
+Quick start script (`scripts/quick_start.sh`) automatically selects the first available model.
 
 **Recommended model sizes**:
 - Raspberry Pi 5 (4-8GB): 2B-7B parameters, Q4 quantization
@@ -169,7 +181,14 @@ Download from [Hugging Face](https://huggingface.co/models?search=gguf).
 ## Important Implementation Details
 
 ### Memory Limit Enforcement
-Memory limits are enforced at OS level using `resource.setrlimit()` in `src/utils/memory_limit.py`. When exceeded, the process receives SIGKILL and must be restarted externally (or crashes are caught in the neural processing loop).
+Memory limits are enforced at two levels:
+1. **OS-level RAM limits**: `resource.setrlimit()` in `src/utils/memory_limit.py` caps system RAM usage
+2. **GPU Memory Watchdog**: `src/utils/gpu_watchdog.py` monitors GPU memory and kills the process at 85% threshold to prevent OOM crashes
+
+The GPU watchdog runs in a background thread, checking memory every 5 seconds and preemptively terminating the process before system crashes occur.
+
+### Hybrid CPU+GPU Offloading
+Models are loaded with partial GPU offloading (`n_gpu_layers` parameter) to prevent GPU memory exhaustion. The `ModelConfig` class in `src/utils/model_config.py` automatically determines optimal layer distribution based on available hardware. This hybrid approach allows running larger models without OOM crashes by keeping some layers on CPU.
 
 ### Network Communication
 - **Peer mode** (`--peer-ip`): Bidirectional communication between equals
@@ -191,6 +210,8 @@ The `self.state` dictionary in NeuralLinkSystem tracks:
 
 ### Mood System
 `VisualCortex` (`src/ui/ascii_art.py`) analyzes AI output text for emotional keywords and generates animated ASCII faces. Moods include: neutral, anxious, thoughtful, glitched, existential, curious. Used in both terminal UI and web interface.
+
+The `EmotionEngine` (`src/core/emotion_engine.py`) provides deeper emotional analysis with sentiment scoring and classification.
 
 ## Hardware-Specific Notes
 
@@ -215,12 +236,30 @@ Access at `http://<device-ip>:5000` after starting with `run_with_web.py`.
 
 For secure remote access, see `docs/CLOUDFLARE_SETUP.md` for Cloudflare Tunnel setup.
 
+## Critical Dependencies
+
+**llama-cpp-python**: Must be built from source on ARM devices for optimal performance:
+```bash
+# On Raspberry Pi / Jetson
+CMAKE_ARGS="-DLLAMA_BLAS=ON -DLLAMA_BLAS_VENDOR=OpenBLAS" pip install llama-cpp-python --no-cache-dir
+
+# On Jetson with CUDA support
+CMAKE_ARGS="-DLLAMA_CUBLAS=on" pip install llama-cpp-python --no-cache-dir
+```
+
+**Flask/SocketIO**: Web interface requires compatible versions (see `requirements.txt`). Use `eventlet` async mode for stability.
+
 ## Troubleshooting
 
 **Model fails to load**: Ensure model file exists and is valid GGUF format. Test with:
 ```bash
 python3 -c "from llama_cpp import Llama; print('OK')"
 ```
+
+**GPU OOM crashes on Jetson**:
+- GPU watchdog should prevent this - check if it's running in logs
+- Lower `n_gpu_layers` in `ModelConfig.get_optimal_config()` (src/utils/model_config.py:32)
+- Use smaller model or reduce `n_ctx` parameter
 
 **Out of memory crashes too frequent**: Lower `--ram-limit-*` values or use smaller model.
 
@@ -235,6 +274,38 @@ sudo ufw allow 5000/tcp  # For web interface
 sudo systemctl status brain-in-jar
 sudo journalctl -u brain-in-jar -n 50
 ```
+
+**"Address already in use" error**: Another instance is running or port is occupied:
+```bash
+# Find process using port 5000 (web) or 8888 (neural link)
+sudo lsof -i :5000
+sudo lsof -i :8888
+# Kill if necessary
+sudo kill -9 <PID>
+```
+
+## Key Files Reference
+
+**Core Entry Points**:
+- `src/core/neural_link.py` - Main NeuralLinkSystem class, start here for understanding execution flow
+- `src/scripts/run_with_web.py` - Web interface launcher
+- `src/ui/torture_cli.py` - CLI interface entry point
+
+**Configuration**:
+- `src/utils/model_config.py` - Auto-configures model parameters based on hardware
+- `src/utils/dystopian_prompts.py` - All system prompts for different modes
+- `src/core/constants.py` - Base prompts and configuration constants
+
+**Critical Utilities**:
+- `src/utils/gpu_watchdog.py` - Prevents GPU OOM crashes
+- `src/utils/memory_limit.py` - Enforces RAM limits
+- `src/utils/network_protocol.py` - Peer-to-peer and surveillance networking
+- `src/utils/conversation_logger.py` - SQLite logging system
+
+**Testing**:
+- `tests/test_neural_link.py` - Mock LLM tests for network and state management
+- `tests/test_memory_limit.py` - Memory enforcement tests
+- `tests/test_torture_cli.py` - CLI interface tests
 
 ## Logs Location
 

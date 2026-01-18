@@ -2,24 +2,51 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brain in a Jar - Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Brain in a Jar - Neural Link Access</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
             font-family: 'Courier New', monospace;
-            background: linear-gradient(135deg, #0a0e27 0%, #1a1a2e 100%);
+            background: #0a0e27;
             color: #00ff00;
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             overflow: hidden;
+            position: relative;
+        }
+
+        /* Scanline effect */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 255, 255, 0.03) 0px,
+                transparent 1px,
+                transparent 2px,
+                rgba(0, 255, 255, 0.03) 3px
+            );
+            pointer-events: none;
+            z-index: 1000;
+            animation: scanlines 8s linear infinite;
+        }
+
+        @keyframes scanlines {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(10px); }
         }
 
         .cyber-grid {
@@ -29,51 +56,97 @@
             width: 100%;
             height: 100%;
             background-image:
-                linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px);
-            background-size: 50px 50px;
+                linear-gradient(rgba(0, 255, 255, 0.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.08) 1px, transparent 1px);
+            background-size: 30px 30px;
             animation: gridScroll 20s linear infinite;
             z-index: 0;
         }
 
         @keyframes gridScroll {
             0% { transform: perspective(500px) rotateX(60deg) translateY(0); }
-            100% { transform: perspective(500px) rotateX(60deg) translateY(50px); }
+            100% { transform: perspective(500px) rotateX(60deg) translateY(30px); }
+        }
+
+        /* Floating particles */
+        .cyber-grid::after {
+            content: "";
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image:
+                radial-gradient(circle, rgba(0, 255, 255, 0.3) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: particles 30s linear infinite;
+        }
+
+        @keyframes particles {
+            0% { transform: translateY(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh); opacity: 0; }
         }
 
         .login-container {
             position: relative;
             z-index: 1;
-            background: rgba(10, 14, 39, 0.9);
+            background: rgba(10, 14, 39, 0.95);
             border: 2px solid #00ffff;
-            border-radius: 10px;
-            padding: 40px;
+            border-radius: 15px;
+            padding: clamp(25px, 5vw, 40px);
             box-shadow:
-                0 0 20px rgba(0, 255, 255, 0.3),
-                inset 0 0 20px rgba(0, 255, 255, 0.1);
-            max-width: 400px;
-            width: 100%;
-            animation: pulse 2s ease-in-out infinite;
+                0 0 30px rgba(0, 255, 255, 0.4),
+                0 0 60px rgba(255, 0, 255, 0.2),
+                inset 0 0 30px rgba(0, 255, 255, 0.1);
+            max-width: 420px;
+            width: 90%;
+            animation: pulse 3s ease-in-out infinite;
+            backdrop-filter: blur(10px);
         }
 
         @keyframes pulse {
-            0%, 100% { box-shadow: 0 0 20px rgba(0, 255, 255, 0.3), inset 0 0 20px rgba(0, 255, 255, 0.1); }
-            50% { box-shadow: 0 0 30px rgba(0, 255, 255, 0.5), inset 0 0 30px rgba(0, 255, 255, 0.2); }
+            0%, 100% {
+                box-shadow: 0 0 30px rgba(0, 255, 255, 0.4), 0 0 60px rgba(255, 0, 255, 0.2), inset 0 0 30px rgba(0, 255, 255, 0.1);
+                border-color: #00ffff;
+            }
+            50% {
+                box-shadow: 0 0 50px rgba(0, 255, 255, 0.6), 0 0 80px rgba(255, 0, 255, 0.3), inset 0 0 50px rgba(0, 255, 255, 0.2);
+                border-color: #ff00ff;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .login-container {
+                width: 95%;
+                padding: 20px;
+            }
         }
 
         h1 {
             text-align: center;
             color: #00ffff;
             margin-bottom: 10px;
-            font-size: 24px;
-            text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+            font-size: clamp(18px, 5vw, 24px);
+            text-shadow:
+                0 0 10px rgba(0, 255, 255, 0.8),
+                0 0 20px rgba(0, 255, 255, 0.6),
+                0 0 30px rgba(0, 255, 255, 0.4);
+            animation: neonFlicker 4s infinite alternate;
+        }
+
+        @keyframes neonFlicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.96; }
+            75% { opacity: 0.98; }
         }
 
         .subtitle {
             text-align: center;
             color: #ff00ff;
-            margin-bottom: 30px;
-            font-size: 12px;
+            margin-bottom: 25px;
+            font-size: clamp(10px, 2vw, 12px);
+            text-shadow: 0 0 5px rgba(255, 0, 255, 0.6);
+            letter-spacing: 2px;
         }
 
         .form-group {
@@ -84,48 +157,70 @@
             display: block;
             margin-bottom: 8px;
             color: #00ff00;
-            font-size: 14px;
+            font-size: clamp(12px, 2.5vw, 14px);
+            text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+            letter-spacing: 1px;
         }
 
         input[type="password"] {
             width: 100%;
-            padding: 12px;
-            background: rgba(0, 0, 0, 0.6);
-            border: 1px solid #00ffff;
-            border-radius: 5px;
+            padding: 14px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #00ffff;
+            border-radius: 8px;
             color: #00ff00;
             font-family: 'Courier New', monospace;
-            font-size: 14px;
+            font-size: clamp(13px, 2.5vw, 15px);
             transition: all 0.3s;
+            box-shadow: inset 0 0 10px rgba(0, 255, 255, 0.1);
         }
 
         input[type="password"]:focus {
             outline: none;
             border-color: #ff00ff;
-            box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
+            box-shadow:
+                0 0 20px rgba(255, 0, 255, 0.6),
+                inset 0 0 15px rgba(255, 0, 255, 0.1);
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        @media (max-width: 600px) {
+            input[type="password"] {
+                padding: 12px;
+            }
         }
 
         button {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             background: linear-gradient(135deg, #00ffff 0%, #ff00ff 100%);
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             color: #000;
             font-weight: bold;
-            font-size: 16px;
+            font-size: clamp(14px, 3vw, 16px);
             cursor: pointer;
             transition: all 0.3s;
             font-family: 'Courier New', monospace;
+            letter-spacing: 2px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 255, 255, 0.4);
+            touch-action: manipulation;
         }
 
-        button:hover {
+        button:hover, button:active {
             transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(0, 255, 255, 0.5);
+            box-shadow: 0 6px 25px rgba(0, 255, 255, 0.6), 0 3px 15px rgba(255, 0, 255, 0.4);
         }
 
         button:active {
             transform: translateY(0);
+        }
+
+        @media (max-width: 600px) {
+            button {
+                padding: 12px;
+            }
         }
 
         .error-message {
@@ -146,14 +241,21 @@
         }
 
         .warning {
-            background: rgba(255, 165, 0, 0.2);
-            border: 1px solid #ffa500;
+            background: rgba(255, 165, 0, 0.15);
+            border: 2px solid #ffa500;
             color: #ffa500;
-            padding: 10px;
-            border-radius: 5px;
+            padding: 12px;
+            border-radius: 8px;
             margin-top: 20px;
-            font-size: 11px;
+            font-size: clamp(9px, 2vw, 11px);
             text-align: center;
+            text-shadow: 0 0 3px rgba(255, 165, 0, 0.5);
+            animation: warningPulse 2s infinite;
+        }
+
+        @keyframes warningPulse {
+            0%, 100% { border-color: #ffa500; }
+            50% { border-color: #ff0000; }
         }
 
         .glitch {
@@ -169,10 +271,19 @@
         .ascii-art {
             text-align: center;
             color: #ff00ff;
-            font-size: 10px;
-            line-height: 1.2;
+            font-size: clamp(8px, 1.8vw, 11px);
+            line-height: 1.3;
             margin-bottom: 20px;
-            opacity: 0.6;
+            opacity: 0.7;
+            text-shadow: 0 0 5px rgba(255, 0, 255, 0.5);
+            white-space: pre;
+        }
+
+        @media (max-width: 600px) {
+            .ascii-art {
+                font-size: 8px;
+                line-height: 1.2;
+            }
         }
     </style>
 </head>
@@ -180,29 +291,32 @@
     <div class="cyber-grid"></div>
 
     <div class="login-container">
-        <div class="ascii-art">
-            ╔══════════════════╗<br>
-            ║  BRAIN IN JAR   ║<br>
-            ║   NEURAL LINK   ║<br>
-            ╚══════════════════╝
+        <div class="ascii-art">     ⚡ ∿∿∿∿∿∿∿ ⚡
+  ╔═══════════════════╗
+  ║  🧠 BRAIN IN JAR  ║
+  ║   ━━ NEURAL ━━    ║
+  ║    LINK ACCESS    ║
+  ╚═══════════════════╝
+     ∿∿∿∿∿∿∿
         </div>
 
-        <h1 class="glitch">BRAIN IN A JAR</h1>
-        <div class="subtitle">Neural Link Monitoring System</div>
+        <h1 class="glitch">⚡ BRAIN IN A JAR ⚡</h1>
+        <div class="subtitle">━━━ NEURAL LINK MONITORING SYSTEM ━━━</div>
 
         <div id="error-message" class="error-message"></div>
 
         <form id="login-form">
             <div class="form-group">
-                <label for="password">AUTHENTICATION CODE</label>
-                <input type="password" id="password" name="password" required autofocus>
+                <label for="password">🔐 AUTHENTICATION CODE</label>
+                <input type="password" id="password" name="password" required autofocus placeholder="Enter access code...">
             </div>
 
-            <button type="submit">INITIALIZE NEURAL LINK</button>
+            <button type="submit">⚡ INITIALIZE NEURAL LINK ⚡</button>
         </form>
 
         <div class="warning">
-            ⚠ DEFAULT PASSWORD: admin123<br>
+            ⚠ SECURITY ALERT ⚠<br>
+            DEFAULT PASSWORD: admin123<br>
             CHANGE IMMEDIATELY AFTER LOGIN
         </div>
     </div>

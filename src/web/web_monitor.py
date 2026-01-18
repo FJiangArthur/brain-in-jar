@@ -107,7 +107,7 @@ class WebMonitor:
         return thread
 
 
-def start_web_server_background(host='0.0.0.0', port=5000):
+def start_web_server_background(host='0.0.0.0', port=8095):
     """
     Start web server in background thread
 

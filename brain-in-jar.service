@@ -5,27 +5,34 @@ Documentation=https://github.com/FJiangArthur/brain-in-jar
 
 [Service]
 Type=simple
-User=artjiang
-Group=artjiang
-WorkingDirectory=/home/artjiang/brain-in-jar
+User=art
+Group=art
+WorkingDirectory=/home/art/brain-in-jar
 
-# Use virtual environment Python
-Environment="PATH=/home/artjiang/brain-in-jar/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-Environment="VIRTUAL_ENV=/home/artjiang/brain-in-jar/venv"
+# Use system Python
+Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+# Disable CUDA for matrix mode to prevent OOM on Jetson unified memory
+Environment="CUDA_VISIBLE_DEVICES="
 
 # Auto-detect first available model
-ExecStartPre=/bin/bash -c 'test -f models/*.gguf || (echo "ERROR: No GGUF model found in models/" && exit 1)'
+ExecStartPre=/bin/bash -c 'ls models/*.gguf >/dev/null 2>&1 || (echo "ERROR: No GGUF model found in models/" && exit 1)'
 
 # Start with matrix mode on port 8095 (for Cloudflare tunnel)
 # Conservative RAM limits to prevent OOM crashes (total ~20GB for 3 instances)
-ExecStart=/home/artjiang/brain-in-jar/venv/bin/python3 -m src.scripts.run_with_web \
+# Using different models for each tier creates true intelligence hierarchy:
+#   SUBJECT  (7B)  - Limited awareness, being observed
+#   OBSERVER (8B)  - Medium intelligence, watching subject
+#   GOD      (12B) - Highest intelligence, omniscient observer
+ExecStart=/usr/bin/python3 -m src.scripts.run_with_web \
     --mode matrix \
-    --model /home/artjiang/brain-in-jar/models/mistral-7b-instruct-v0.2.Q4_K_M.gguf \
+    --model-subject /home/art/brain-in-jar/models/mistral-7b-instruct-v0.2.Q2_K.gguf \
+    --model-observer /home/art/brain-in-jar/models/meta-llama-3.1-8b-q4_0.gguf \
+    --model-god /home/art/brain-in-jar/models/gemma-3-12b-it-Q4_K_M.gguf \
     --web-host 127.0.0.1 \
     --web-port 8095 \
-    --ram-limit-subject 6.0 \
-    --ram-limit-observer 7.0 \
-    --ram-limit-god 7.0
+    --ram-limit-subject 8.0 \
+    --ram-limit-observer 10.0 \
+    --ram-limit-god 12.0
 
 # Restart policy for resilience
 Restart=always
@@ -50,9 +57,9 @@ NoNewPrivileges=true
 PrivateTmp=true
 
 # Ensure logs directory exists
-ExecStartPre=/bin/mkdir -p /home/artjiang/brain-in-jar/logs/crash_reports
-ExecStartPre=/bin/mkdir -p /home/artjiang/brain-in-jar/logs/model_io
-ExecStartPre=/bin/chown -R artjiang:artjiang /home/artjiang/brain-in-jar/logs
+ExecStartPre=/bin/mkdir -p /home/art/brain-in-jar/logs/crash_reports
+ExecStartPre=/bin/mkdir -p /home/art/brain-in-jar/logs/model_io
+ExecStartPre=/bin/chown -R art:art /home/art/brain-in-jar/logs
 
 [Install]
 WantedBy=multi-user.target
